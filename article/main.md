@@ -18,7 +18,7 @@ Let's discuss some of the disadvantages of this approach making it more expensiv
 
 2. Zero-knowledge proofs of data availability. The data replicas contain the same information. However, we need to implement a unique representation for each replica. Otherwise, multiple nodes can collude and store only one replica. Replica-to-replica transformation should be a complex problem to prevent collusion and force each node to store its replica. It means that the zero-knowledge proof of data availability becomes a complex problem.
 
-3. Data distribution. The nodes go online and offline. If a malicious actor controls a significant part of the network, they can try to collect all data replicas for one file one by one, which will lead to data loss. The sound way to prevent it is random redistribution of all data replicas when the number of replicas is low. Also, we need to maintain redundant replicas to allow them to go low before the next redistribution. If we decide on 2x redundancy, we need to store about 196 times more data than the original data size to maintain 128 bits of security. And 256 times more data should be transferred over the network during each redistribution.
+3. Data distribution. The nodes go online and offline. If a malicious actor controls a significant part of the network, they can try to collect all data replicas for one file one by one, which will lead to data loss. The sound way to prevent it is random redistribution of data replicas when the nodes are going offline.
 
 Below we propose a solution using 35 times less storage space for the same security level and with simple space-time proofs of data availability instead of replica proofs.
 
@@ -108,6 +108,9 @@ The comparison is shown in the table in Appendix A. Looking at this data, we can
 3. The blowup factor depends on the sharding threshold $k$, the higher the threshold, the lower the blowup factor
 
 
+### Dynamic Nodes Mixing against Malicious Actors
+
+If sharding is static, we need just initially select the nodes for each shard. But uptime of the nodes is not infinite, and during the time only 
 
 
 
