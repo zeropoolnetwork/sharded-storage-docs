@@ -10,7 +10,7 @@ CPU scaling for blockchain is solved. However, storage scaling is still a proble
 
 ### Problem Statement
 
-Existing solutions implement replication of data. Each data chunk should be stored at multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes storing the chunks is low, the network distributes the chunks to other nodes.
+One of the commonly used existing solutions is replication of data. It stores each data chunk should at multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes storing the chunks is low, the network distributes the chunks to other nodes.
 
 Let's discuss some of the disadvantages of this approach making it more expensive than Web2 storage.
 
@@ -29,6 +29,10 @@ Below we propose a solution using 35 times less storage space for the same secur
 [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing) is a method for distributing a secret among a group of participants, each of which is allocated a share of the secret. The secret can be reconstructed only when a sufficient number of shares are combined. The sufficient number is called the threshold. The threshold can be any number between 1 and the total number of shares. The secret cannot be reconstructed from any number of shares less than the threshold.
 
 One of the simplest ways to implement Shamir's Secret Sharing is to use a polynomial of degree N-1. We can represent the N-sized secret as a polynomial of degree N-1. We can evaluate this polynomial at M points and get M values. Then we distribute these values among M participants. The secret can be restored from any N values.
+
+
+> [!TIP]
+> The way we use Shamir's Secret Sharing here can be alternatively characterized as encoding the data with [Reed–Solomon Error Correcting Code](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction) and decoding with erasures (not errors). Especially since the message we encode is not secret. In the following, we keep calling it Secret Sharing because more readers may be familiar with this term.
 
 For well-selected $N$ and $M$, we can restore the secret if most of the participants will go offline. We will use this property to build a fault-tolerant storage of publicly available data.
 
@@ -58,9 +62,8 @@ Then the secret can be restored as follows:
 
 $$\mathbf{S}_j = \sum_{i} \mathbf{V}_i \cdot L_{ij}$$
 
-    Notice
-
-    What happens, if some of the participants are malicious and send incorrect values? To prevent this problem, there are a lot of ways. For our partial case, we will merkelize all values and distribute them to all participants with Merkle proofs. Then we can check the correctness of each value, checking the root of the Merkle proof. If the root is incorrect, we can ignore the value.
+> [!NOTE]
+> What happens, if some of the participants are malicious and send incorrect values? To prevent this problem, there are a lot of ways. For our partial case, we will merkelize all values and distribute them to all participants with Merkle proofs. Then we can check the correctness of each value, checking the root of the Merkle proof. If the root is incorrect, we can ignore the value.
 
 
 ### Soundness  Analysis
