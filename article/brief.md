@@ -2,13 +2,13 @@
 
 ## Overview
 
-We are seeing a definite demand for such tools, as rollups have scaled up CPUs, but effective tools for scaling data are not yet available. EthStorage has made the most progress, but they charge 4.5 ETH for 1GB and use replication instead of sharding.
+We are seeing a definite demand for tools to scale data storage. Rollups have scaled up CPU computations, but effective tools for scaling data are not yet available. EthStorage has made the most progress, but they charge 4.5 ETH for 1GB and use replication instead of sharding.
 
 Our idea is data sharding. We represent the data as values of a polynomial of degree k-1 at k points and then interpolate the polynomial values at n points. Then, any k out of n values are sufficient to recover the data.
 
 ## Soundness 
 
-We have solved the reliability problem when scaling: even if someone controls 50% of the network and uses various strategies to gain control over the data, they will only gain control over at least one file with a probability of 2^-80 (80 bits of security). This is with a blowup factor of 8 (64 to 512).
+We have solved the reliability problem when scaling: even if someone controls 50% of the network and uses various strategies to gain control over the data, they will only gain control over at least one file with a probability of 2^-80 (80 bits of security). This is with a blowup factor of 8 (64 words are stored as 521 words, one word for each of the nodes).
 
 This is an asymptotic estimate in the case of an infinitely large number of nodes in the network; if there are fewer nodes, the reliability against a 51% attack is higher.
 
@@ -25,11 +25,9 @@ A separate problem with replication is forcing all nodes to store unique represe
 
 The network consists of pools of 512 nodes. Files are split into words of 64 numbers, and these sequences of 64 numbers are encoded as one word for each node. There can be many pools. When a node goes offline, it is replaced by a free node with a random shuffling of a small number of nodes between pools (up to 2 swaps, but can be less) to prevent an attacker from concentrating malicious nodes in one pool.
 
-Free nodes queue for files and mine on plots, like in Chia, thus proving they have disk space. Non-free nodes occasionally perform a random data access proof, which proves that the node stores a specific file in its entirety. Such proofs can be made frequently and aggregated.
+Nodes are divided into two types: free and non-free. Free nodes queue for files and mine on plots, like in Chia, thus proving they have disk space. Non-free nodes occasionally perform a random data access proof, which proves that the node stores a specific file in its entirety. Such proofs can be made frequently and aggregated.
 
-Node management is done through a smart contract.
-
-All proofs and the smart contract can be represented as a recursive SNARK on Plonky3 or its elements, such as polynomial commitments.
+Node management is done through a smart contract employing ZK Proofs. All proofs and the smart contract can be represented as a recursive SNARK on Plonky3 or its elements, such as polynomial commitments.
 
 In its basic implementation, it is similar to a low-level web3 RAID disk of several petabytes in size, with no upper limit, because all nodes only participate in a smart contract that mixes them in pools, and this is a relatively rare event. The size of the nodes (tens of terabytes) is orders of magnitude larger than the information needed to manage their mixing in pools.
 
