@@ -18,7 +18,7 @@ Let's discuss some of the disadvantages of this approach making it more expensiv
 
 2. Zero-knowledge proofs of data availability. The data replicas contain the same information. However, we need to implement a unique representation for each replica. Otherwise, multiple nodes can collude and store only one replica. Replica-to-replica transformation should be a complex problem to prevent collusion and force each node to store its replica. It means that the zero-knowledge proof of data availability becomes a complex problem.
 
-3. Data distribution. The nodes go online and offline. If a malicious actor controls a significant part of the network, they can try to collect all data replicas for one file one by one, which will lead to data loss. The sound way to prevent it is random redistribution of data replicas when the nodes are going offline.
+3. Data distribution. The nodes go online and offline. If a malicious actor controls a significant part of the network, they can try to collect all data replicas for one file one by one, which will lead to data loss. The sound way to prevent it is random redistribution of data replicas when some of the nodes go offline.
 
 Below we propose a solution using 35 times less storage space for the same security level and with simple space-time proofs of data availability instead of replica proofs.
 
@@ -110,13 +110,19 @@ The comparison is shown in the table in Appendix A. Looking at this data, we can
 
 ### Dynamic Nodes Mixing against Malicious Actors
 
-If sharding is static, we need just initially select the nodes for each shard. But uptime of the nodes is not infinite, and during the time only 
+If sharding is static, we need just initially select the nodes for each shard. But the uptime of the nodes is not infinite, and if only malicious nodes are left in the shard, the data will be lost. To prevent this problem, we need to mix the nodes in the shards periodically. The mixing should be done in a way, that the malicious nodes cannot predict the new shard for the data.
 
+Let's consider $n$ as the number of nodes in a shard.
 
+If malicious actors in the shard are waiting when the honest node is going offline, we get the following equation for mixing:
 
+$$ p_1 = 1-\frac{(m+1)(n-1)(1-p)}{n m},$$
+
+where $p_1$ is the probability that the node in the shard is honest, $p$ is the probability that the node is honest, and $m$ is the number of random mixing after the honest node goes offline.
+
+For example, if $p=1/2$, $k=64$, $n=512$, $m=4$, then soundness is $104$ bits of security.
 
 ## Brief protocol description
-
 
 
 
@@ -161,46 +167,7 @@ Another approach is used to make proof, that files are stored at the node. The n
 
 ## Appendices
 
-### Appendix A: Comparison of Sharding and Replication
 
-| Security | $p$ | Sharding $k$ | Sharding $n$ | Sharding blowup | Replication blowup | Advantage of sharding |
-| --- | --- | --- | --- | --- | --- | --- |
-| 64 | 0.25 | 64 | 658 | 10.3 | 154.2 | 15.0 |
-| 64 | 0.25 | 128 | 1010 | 7.9 | 154.2 | 19.5 |
-| 64 | 0.25 | 256 | 1664 | 6.5 | 154.2 | 23.7 |
-| 64 | 0.25 | 512 | 2892 | 5.6 | 154.2 | 27.3 |
-| 64 | 0.5 | 64 | 279 | 4.4 | 64.0 | 14.7 |
-| 64 | 0.5 | 128 | 447 | 3.5 | 64.0 | 18.3 |
-| 64 | 0.5 | 256 | 762 | 3.0 | 64.0 | 21.5 |
-| 64 | 0.5 | 512 | 1358 | 2.7 | 64.0 | 24.1 |
-| 64 | 0.75 | 64 | 149 | 2.3 | 32.0 | 13.7 |
-| 64 | 0.75 | 128 | 254 | 2.0 | 32.0 | 16.1 |
-| 64 | 0.75 | 256 | 453 | 1.8 | 32.0 | 18.1 |
-| 64 | 0.75 | 512 | 834 | 1.6 | 32.0 | 19.6 |
-| 96 | 0.25 | 64 | 808 | 12.6 | 231.3 | 18.3 |
-| 96 | 0.25 | 128 | 1179 | 9.2 | 231.3 | 25.1 |
-| 96 | 0.25 | 256 | 1863 | 7.3 | 231.3 | 31.8 |
-| 96 | 0.25 | 512 | 3137 | 6.1 | 231.3 | 37.8 |
-| 96 | 0.5 | 64 | 332 | 5.2 | 96.0 | 18.5 |
-| 96 | 0.5 | 128 | 509 | 4.0 | 96.0 | 24.1 |
-| 96 | 0.5 | 256 | 837 | 3.3 | 96.0 | 29.4 |
-| 96 | 0.5 | 512 | 1452 | 2.8 | 96.0 | 33.9 |
-| 96 | 0.75 | 64 | 170 | 2.7 | 48.0 | 18.1 |
-| 96 | 0.75 | 128 | 279 | 2.2 | 48.0 | 22.0 |
-| 96 | 0.75 | 256 | 484 | 1.9 | 48.0 | 25.4 |
-| 96 | 0.75 | 512 | 874 | 1.7 | 48.0 | 28.1 |
-| 128 | 0.25 | 64 | 952 | 14.9 | 308.4 | 20.7 |
-| 128 | 0.25 | 128 | 1337 | 10.4 | 308.4 | 29.5 |
-| 128 | 0.25 | 256 | 2045 | 8.0 | 308.4 | 38.6 |
-| 128 | 0.25 | 512 | 3357 | 6.6 | 308.4 | 47.0 |
-| 128 | 0.5 | 64 | 383 | 6.0 | 128.0 | 21.4 |
-| 128 | 0.5 | 128 | 566 | 4.4 | 128.0 | 28.9 |
-| 128 | 0.5 | 256 | 904 | 3.5 | 128.0 | 36.2 |
-| 128 | 0.5 | 512 | 1535 | 3.0 | 128.0 | 42.7 |
-| 128 | 0.75 | 64 | 189 | 3.0 | 64.0 | 21.7 |
-| 128 | 0.75 | 128 | 301 | 2.4 | 64.0 | 27.2 |
-| 128 | 0.75 | 256 | 512 | 2.0 | 64.0 | 32.0 |
-| 128 | 0.75 | 512 | 910 | 1.8 | 64.0 | 36.0 |
 
 
 
