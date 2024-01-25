@@ -1,7 +1,5 @@
 from mpmath import mp, log, mpf, erf, sqrt, floor, power
 
-# Set the precision
-mp.dps = 1024
 
 def fault_probability(p,n,k):
     return 0.5*(1+erf((k-0.5-n*p)/sqrt(2*n*p*(1-p))))
@@ -41,33 +39,36 @@ def dynamic_p(p, n, m):
     return 1-(m+1)*(n-1)*(1-p)/(n*m)
 
 
+if __name__ == "__main__":
+    # Set the precision
+    mp.dps = 1024
 
-p=0.5
-k=64
-xt=8
-m=4
-print(f"Soundness for sharding p={p}, k={k}, xt={xt}: {int(soundness(p,xt,k))}")
-print(f"Dynamic soundness for sharding for p={p}, k={k}, xt={xt}, m={m}: {int(soundness(dynamic_p(p, xt*k, m), xt, k))}")
+    p=0.5
+    k=64
+    xt=8
+    m=4
+    print(f"Soundness for sharding p={p}, k={k}, xt={xt}: {int(soundness(p,xt,k))}")
+    print(f"Dynamic soundness for sharding for p={p}, k={k}, xt={xt}, m={m}: {int(soundness(dynamic_p(p, xt*k, m), xt, k))}")
 
-xt = 8
-print(f"Soundness for replica p={p}, xt={xt}: {int(soundness2(p,xt))}")
-print(f"Dynamic soundness for replica for p={p}, xt={xt}, m={m}: {int(soundness2(dynamic_p(p, xt, m), xt))}")
+    xt = 8
+    print(f"Soundness for replica p={p}, xt={xt}: {int(soundness2(p,xt))}")
+    print(f"Dynamic soundness for replica for p={p}, xt={xt}, m={m}: {int(soundness2(dynamic_p(p, xt, m), xt))}")
 
 
 
-# s = [64, 96, 128]
-# k = [64, 128, 256, 512]
-# p = [1/4, 1/2, 3/4]
+    # s = [64, 96, 128]
+    # k = [64, 128, 256, 512]
+    # p = [1/4, 1/2, 3/4]
 
-# print("""
-# | Security | $p$ | Sharding $k$ | Sharding $n$ | Sharding blowup | Replication blowup | Advantage of sharding |
-# | --- | --- | --- | --- | --- | --- | --- |""")
+    # print("""
+    # | Security | $p$ | Sharding $k$ | Sharding $n$ | Sharding blowup | Replication blowup | Advantage of sharding |
+    # | --- | --- | --- | --- | --- | --- | --- |""")
 
-# for _s in s:
-#     for _p in p:
-#         for _k in k:
-#             xt1 = xt_by_soundness(_p, _k, _s)
-#             n = int(xt1*_k)
-#             xt2 = xt_by_soundness2(_p, _s)
-#             print(f"| {_s} | {_p} | {_k} | {n} | {float(xt1):.1f} | {float(xt2):.1f} | {float(xt2/xt1):.1f} |")
+    # for _s in s:
+    #     for _p in p:
+    #         for _k in k:
+    #             xt1 = xt_by_soundness(_p, _k, _s)
+    #             n = int(xt1*_k)
+    #             xt2 = xt_by_soundness2(_p, _s)
+    #             print(f"| {_s} | {_p} | {_k} | {n} | {float(xt1):.1f} | {float(xt2):.1f} | {float(xt2/xt1):.1f} |")
 
