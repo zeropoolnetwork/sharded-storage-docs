@@ -1,8 +1,12 @@
 from mpmath import mp, log, mpf, erf, sqrt, floor, power
-
+from markov import markov
 
 def fault_probability(p,n,k):
     return 0.5*(1+erf((k-0.5-n*p)/sqrt(2*n*p*(1-p))))
+
+def dyn_soundness(p,n,k,m):
+    equi_state = markov(p, n, m)
+    return -log(sum(equi_state[:k]),2)
 
 
 def soundness(p,xt,k):
@@ -48,11 +52,12 @@ if __name__ == "__main__":
     xt=8
     m=4
     print(f"Soundness for sharding p={p}, k={k}, xt={xt}: {int(soundness(p,xt,k))}")
-    print(f"Dynamic soundness for sharding for p={p}, k={k}, xt={xt}, m={m}: {int(soundness(dynamic_p(p, xt*k, m), xt, k))}")
+    print(f"Dynamic soundness for sharding for p={p}, k={k}, xt={xt}, m={m}: {int(dyn_soundness(p, xt*k, k, m))}")
 
     xt = 8
     print(f"Soundness for replica p={p}, xt={xt}: {int(soundness2(p,xt))}")
-    print(f"Dynamic soundness for replica for p={p}, xt={xt}, m={m}: {int(soundness2(dynamic_p(p, xt, m), xt))}")
+    print(f"Dynamic soundness for replica for p={p}, xt={xt}, m={m}: {int(dyn_soundness(p, xt, 1, m))}")
+    
 
 
 

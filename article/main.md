@@ -113,17 +113,14 @@ The comparison is shown in the table in Appendix A. Looking at this data, we can
 
 ### Dynamic Nodes Mixing against Malicious Actors
 
-If sharding is static, we need just initially select the nodes for each shard. But the uptime of the nodes is not infinite, and if only malicious nodes are left in the shard, the data will be lost. To prevent this problem, we need to mix the nodes in the shards periodically. The mixing should be done in a way, that the malicious nodes cannot predict the new shard for the data.
+If sharding is static, we need just initially select the nodes for each pool. However the uptime of the nodes is not infinite, and if only malicious nodes are left in the pool, the data will be lost. To prevent this problem, we need to mix the nodes in the pools periodically. The mixing should be done in a way, that the malicious nodes cannot predict the new shard for the data.
 
-Let's consider $n$ as the number of nodes in a shard.
 
-If malicious actors in the shard are waiting when the honest node is going offline, we get the following equation for mixing:
+Let's consider $n$ as the number of nodes in a pool.
 
-$$ p_1 = 1-\frac{(m+1)(n-1)(1-p)}{n m},$$
+For the best strategy for the malicious actor: keep the malicious nodes in the pool and wait when the honest node to go offline, we can describe the evolution of the pool as a Markov process. We can find the equilibrium distribution for this process and find the probability that less than $k$ nodes in the pool are honest.
 
-where $p_1$ is the probability that the node in the shard is honest, $p$ is the probability that the node is honest, and $m$ is the number of random mixing after the honest node goes offline.
-
-For example, if $p=1/2$, $k=64$, $n=512$, $m=4$, then soundness is $104$ bits of security.
+For example, if $p=1/2$, $k=64$, $n=512$, $m=4$, then soundness is $101$ bits of security.
 
 ## Brief protocol description
 
