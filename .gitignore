@@ -161,3 +161,9 @@ cython_debug/
 
 .vscode
 
+
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+/docs/build/
+Manifest.toml
