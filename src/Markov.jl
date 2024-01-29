@@ -4,7 +4,7 @@ using Combinatorics
 
 module Markov
 
-    DEBUG=1
+    DEBUG=0
 
     macro debug_assert(ex, msgs...)
         msg = isempty(msgs) ? ex : msgs[1]
@@ -35,84 +35,6 @@ module Markov
         return x == 0 ? 1 : 0
     end
 
-    # process with 1 honest node disconnect, 1 replacement and m mixings
-    function markov1(p::BigFloat, n::Int, m::Int)
-        eps = BigFloat("1e-6")
-        # initial state
-
-
-        state = zeros(BigFloat, n+1)
-        state[1] = BigFloat(1)
-        state1 = zeros(BigFloat, n+1)
-
-        instate = zeros(BigFloat, n+1)
-
-        while true
-            instate[:] = state
-
-            # if all elements are '0', subtract '0'
-            state1[1] += state[1]
-
-            # otherwise subtract '1'
-            state1[1:n] += state[2:n+1]
-
-            @debug_assert abs(1-sum(state1)) < eps "sum(state) != 1"
-            @debug_assert state1[n+1] == BigFloat(0) "state[n] != 0"
-
-            state, state1 = state1, state
-            fill!(state1, BigFloat(0))
-
-            # subtract m times random element
-            for i in 1:m
-
-                # probability to subtract 1
-                ps1 = BigFloat.(0:n-i) / (n-i)
-
-                # subtract 1
-                state1[1:n-i] += state[2:n-i+1] .* ps1[2:n-i+1]
-                # subtract 0
-                state1[1:n-i+1] += state[1:n-i+1] .* (1 .- ps1)
-
-
-                @debug_assert abs(1-sum(state1)) < eps "sum(state) != 1"
-                @debug_assert state1[n+1-i] == BigFloat(0) "state[n+1-i] != 0"
-
-                state, state1 = state1, state
-                fill!(state1, BigFloat(0))
-            end
-
-            # add m+1 times random element outside
-            for i in 1:(m+1)
-                
-                # add 1
-                state1[2:n+1] += state[1:n] * p
-                
-                # add 0
-                state1[1:n+1] += state[1:n+1] * (1 - p)
-                
- 
-
-                @debug_assert abs(1-sum(state1)) < eps "sum(state) != 1"
-                @debug_assert i==m+1 || state1[n-m+i+1] == BigFloat(0) "state[n-m+i+1] != 0"
-
-                state, state1 = state1, state
-                fill!(state1, BigFloat(0))
-            end
-
-            t = state + instate
-            t += fix_zero.(t)
-            err = sum(abs.(state - instate) ./ t)
-            
-            if err < eps
-                break
-            end
-        end
-
-        return state
-    end
-
-
-
 
     function subs_honest(state)
         t=state[1]
@@ -141,19 +63,14 @@ module Markov
     end
 
 
-
-
-
     # 1/(m+1) probability of honest node disconnect, replacement and m-1 mixings
     # m/(m+1) probability of random mixing
     
-    function markov2(p::BigFloat, n::Int, m::Int)
+    function markov(p::BigFloat, n::Int, m::Int)
         eps = BigFloat("1e-6")
         # initial state
 
-        
-
-
+    
         state = zeros(BigFloat, n+1)
         state[1] = BigFloat(1)
         buf = zeros(BigFloat, n+1)
@@ -199,5 +116,4 @@ module Markov
         return state
     end
 
-    markov = markov2
 end

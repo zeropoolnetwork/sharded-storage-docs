@@ -11,8 +11,8 @@ distribution = markov(p, k*xt, m)
 
 plot(distribution)
 xlabel("Index")
-ylabel("Value")
-title("Array Plot")
+ylabel("Probability")
+title("Number of honest nodes in pool distribution")
 grid(true)
 show()
 
