@@ -10,15 +10,21 @@ CPU scaling for blockchain is solved. However, storage scaling is still a proble
 
 ### Problem Statement
 
-One of the commonly used existing solutions is replication of data. It stores each data chunk should at multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes storing the chunks is low, the network distributes the chunks to other nodes.
+### An Existing Solution
 
-Let's discuss some of the disadvantages of this approach making it more expensive than Web2 storage.
+One of the commonly used existing solutions is replication of data. The data is split into chunks and each chunk is stored replicated on multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes storing a given chunk drops below a certain threshold (when nodes go offline, for example), the network distributes the chunks to other nodes.
 
-1. Replication of data. If we want to build a 50% fault-tolerant network with 128 bits of security, we need to replicate data 128 times. It means that the network should store and transfer 128 times more data than the original data size.
+Let's discuss some of the features and disadvantages of this approach making it more expensive than Web2 storage.
 
-2. Zero-knowledge proofs of data availability. The data replicas contain the same information. However, we need to implement a unique representation for each replica. Otherwise, multiple nodes can collude and store only one replica. Replica-to-replica transformation should be a complex problem to prevent collusion and force each node to store its replica. It means that the zero-knowledge proof of data availability becomes a complex problem.
+1. Replication of data. If we want to build a 50% fault-tolerant network with 128 bits of statistical security, we need to replicate data 128 times. It means that the network should store and transfer 128 times more data than the original data size.
 
-3. Data distribution. The nodes go online and offline. If a malicious actor controls a significant part of the network, they can try to collect all data replicas for one file one by one, which will lead to data loss. The sound way to prevent it is random redistribution of data replicas when some of the nodes go offline.
+   From the perspective of erasure-correcting codes, this can be seen as _repetition code_. It's known to be rather suboptimal: it repeats given codeword (chunk) $k+1$ times to tolerate $k$ erasures. These exist other codes with much better blowup/erasure rate. This suggests that data replication might be wasteful and motivates the search for encodings with better properties.
+
+2. Zero-knowledge proofs of data availability. The network periodically polls nodes and asks them to prove that they still store the replicas given to them.
+   
+   The data replicas contain the same information. Therefore, multiple nodes may be incentivised to collude and store only one replica, saving their resources. However, to ensure fault-tolerance we need to ensure that each node is storing its replica independently from the others. To combat this, existing solutions apply additional encoding to the replicas and make replica-to-replica transformation a computationally hard problem. This prevents collusion and forces each node to store its replica faithfully. The drawback of this is that zero-knowledge proof of data availability needs to be aware of this encoding and this adds more complication to it.
+
+3. Data redistribution. The nodes go online and offline. If a malicious actor controls a significant part of the network, they can try to collect all data replicas for the stored file one by one, which will lead to data loss. Existing solutions prevent this using random redistribution of data replicas when some of the nodes go offline.
 
 Below we propose a solution using 35 times less storage space for the same security level and with simple space-time proofs of data availability instead of replica proofs.
 
@@ -66,7 +72,7 @@ $$\mathbf{S}_j = \sum_{i} \mathbf{V}_i \cdot L_{ij}$$
 > What happens, if some of the participants are malicious and send incorrect values? To prevent this problem, there are a lot of ways. For our partial case, we will merkelize all values and distribute them to all participants with Merkle proofs. Then we can check the correctness of each value, checking the root of the Merkle proof. If the root is incorrect, we can ignore the value.
 
 
-### Soundness  Analysis
+### Security Analysis
 
 Let's consider $p$ as part of honest nodes in the network, So, if a total number of nodes is $N$, $pN$ are honest, and $(1-p)N$ of them are malicious. If shards are distributed by nodes by random, $p$ also is the probability, that the node will be honest. Then if we have $n$ shards with threshold $k$, the probability that the secret cannot be restored means that only strictly less than $k$ shards are stored by honest nodes. The probability is defined by the following binomial distribution:
 
@@ -82,7 +88,7 @@ For $0.05 < p < 0.95$, $n>30$, $np>5$, $n(1-p)>5$, we can use the normal approxi
 
 $$\mathbf{P}(p,n,k) \approx \frac{1}{2} \left[1 + \mathrm{erf}\left(\frac{k-1/2-np}{\sqrt{2np(1-p)}}\right)\right].$$
 
-The soundness of could be defined as follows:
+The number of bits of statistical security provided by this could be defined as follows:
 
 $$\mathbf{S}(p,n,k) = -\log_2 \mathbf{P}(p,n,k).$$
 
@@ -98,7 +104,7 @@ $$\mathbf{P}(p,n) = (1-p)^n,$$
 
 where $p$ is the probability that a node is honest, otherwise it is malicious, and $n$ is the number of replicas.
 
-The soundness of replication could be defined as follows:
+The statistical security bits of replication could be defined as follows:
 
 $$\mathbf{S}(p,n) = -\log_2 \mathbf{P}(p,n).$$
 
@@ -118,7 +124,7 @@ If sharding is static, we need just initially select the nodes for each pool. Ho
 
 Let's consider $n$ as the number of nodes in a pool.
 
-For the best strategy for the malicious actor: keep the malicious nodes in the pool and wait when the honest node to go offline, we can describe the evolution of the pool as a Markov process. We can find the equilibrium distribution for this process and find the probability that less than $k$ nodes in the pool are honest.
+For the best strategy for the malicious actor (assuming that it can not adaptively corrupt honest nodes, but only spawns its own nodes): keep the malicious nodes in the pool and wait when the honest node to go offline, we can describe the evolution of the pool as a Markov process. We can find the equilibrium distribution for this process and find the probability that less than $k$ nodes in the pool are honest.
 
 For example, if $p=1/2$, $k=64$, $n=512$, $m=4$, then soundness is $101$ bits of security.
 
