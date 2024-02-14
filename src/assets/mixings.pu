@@ -1,0 +1,60 @@
+@startuml
+
+hide stereotype
+skinparam backgroundColor #fefefe
+
+<style>
+.RC {
+    RoundCorner 50
+}
+</style>
+
+!procedure $DrawPool($label, $n)
+
+    rectangle $label <<RC>> as %string("pool"+$n) {
+        !$i=0
+        !while $i < 6
+            usecase Node as %string("node"+($n*6+$i))
+            !$i=$i+1
+        !endwhile
+
+        %string("node"+($n*6)) -r[hidden]- %string("node"+($n*6+1))
+        %string("node"+($n*6+1)) -r[hidden]- %string("node"+($n*6+2))
+
+        %string("node"+($n*6+3)) -r[hidden]- %string("node"+($n*6+4))
+        %string("node"+($n*6+4)) -r[hidden]- %string("node"+($n*6+5))
+
+        %string("node"+($n*6)) -d[hidden]- %string("node"+($n*6+3))
+        %string("node"+($n*6+1)) -d[hidden]- %string("node"+($n*6+4))
+        %string("node"+($n*6+2)) -d[hidden]- %string("node"+($n*6+5))
+
+
+    } 
+!endprocedure
+
+
+$DrawPool("Pool", 0)
+$DrawPool("Pool", 1)
+$DrawPool("Pool", 2)
+$DrawPool("Unallocated", 3)
+
+
+
+usecase Node1 as node3 #LightPink
+usecase Node as node18 #LightGreen
+
+
+node12 ---> node3
+node18 ---> node12
+node0 <---> node14
+node1 <---> node11
+
+pool0 -[hidden]-- pool1
+pool0 -[hidden]-- pool2
+pool2 -[hidden]-- pool3
+pool1 -[hidden]-- pool3
+
+
+
+
+@enduml

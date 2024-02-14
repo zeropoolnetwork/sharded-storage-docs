@@ -10,21 +10,15 @@ CPU scaling for blockchain is solved. However, storage scaling is still a proble
 
 ### Problem Statement
 
-### An Existing Solution
+One of the commonly used existing solutions is replication of data. It stores each data chunk should at multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes storing the chunks is low, the network distributes the chunks to other nodes.
 
-One of the commonly used existing solutions is replication of data. The data is split into chunks and each chunk is stored replicated on multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes storing a given chunk drops below a certain threshold (when nodes go offline, for example), the network distributes the chunks to other nodes.
+Let's discuss some of the disadvantages of this approach making it more expensive than Web2 storage.
 
-Let's discuss some of the features and disadvantages of this approach making it more expensive than Web2 storage.
+1. Replication of data. If we want to build a 50% fault-tolerant network with 128 bits of security, we need to replicate data 128 times. It means that the network should store and transfer 128 times more data than the original data size.
 
-1. Replication of data. If we want to build a 50% fault-tolerant network with 128 bits of statistical security, we need to replicate data 128 times. It means that the network should store and transfer 128 times more data than the original data size.
+2. Zero-knowledge proofs of data availability. The data replicas contain the same information. However, we need to implement a unique representation for each replica. Otherwise, multiple nodes can collude and store only one replica. Replica-to-replica transformation should be a complex problem to prevent collusion and force each node to store its replica. It means that the zero-knowledge proof of data availability becomes a complex problem.
 
-   From the perspective of erasure-correcting codes, this can be seen as _repetition code_. It's known to be rather suboptimal: it repeats given codeword (chunk) $k+1$ times to tolerate $k$ erasures. These exist other codes with much better blowup/erasure rate. This suggests that data replication might be wasteful and motivates the search for encodings with better properties.
-
-2. Zero-knowledge proofs of data availability. The network periodically polls nodes and asks them to prove that they still store the replicas given to them.
-   
-   The data replicas contain the same information. Therefore, multiple nodes may be incentivised to collude and store only one replica, saving their resources. However, to ensure fault-tolerance we need to ensure that each node is storing its replica independently from the others. To combat this, existing solutions apply additional encoding to the replicas and make replica-to-replica transformation a computationally hard problem. This prevents collusion and forces each node to store its replica faithfully. The drawback of this is that zero-knowledge proof of data availability needs to be aware of this encoding and this adds more complication to it.
-
-3. Data redistribution. The nodes go online and offline. If a malicious actor controls a significant part of the network, they can try to collect all data replicas for the stored file one by one, which will lead to data loss. Existing solutions prevent this using random redistribution of data replicas when some of the nodes go offline.
+3. Data distribution. The nodes go online and offline. If a malicious actor controls a significant part of the network, they can try to collect all data replicas for one file one by one, which will lead to data loss. The sound way to prevent it is random redistribution of data replicas when some of the nodes go offline.
 
 Below we propose a solution using 35 times less storage space for the same security level and with simple space-time proofs of data availability instead of replica proofs.
 
@@ -72,7 +66,7 @@ $$\mathbf{S}_j = \sum_{i} \mathbf{V}_i \cdot L_{ij}$$
 > What happens, if some of the participants are malicious and send incorrect values? To prevent this problem, there are a lot of ways. For our partial case, we will merkelize all values and distribute them to all participants with Merkle proofs. Then we can check the correctness of each value, checking the root of the Merkle proof. If the root is incorrect, we can ignore the value.
 
 
-### Security Analysis
+### Soundness  Analysis
 
 Let's consider $p$ as part of honest nodes in the network, So, if a total number of nodes is $N$, $pN$ are honest, and $(1-p)N$ of them are malicious. If shards are distributed by nodes by random, $p$ also is the probability, that the node will be honest. Then if we have $n$ shards with threshold $k$, the probability that the secret cannot be restored means that only strictly less than $k$ shards are stored by honest nodes. The probability is defined by the following binomial distribution:
 
@@ -88,7 +82,7 @@ For $0.05 < p < 0.95$, $n>30$, $np>5$, $n(1-p)>5$, we can use the normal approxi
 
 $$\mathbf{P}(p,n,k) \approx \frac{1}{2} \left[1 + \mathrm{erf}\left(\frac{k-1/2-np}{\sqrt{2np(1-p)}}\right)\right].$$
 
-The number of bits of statistical security provided by this could be defined as follows:
+The soundness of could be defined as follows:
 
 $$\mathbf{S}(p,n,k) = -\log_2 \mathbf{P}(p,n,k).$$
 
@@ -104,13 +98,13 @@ $$\mathbf{P}(p,n) = (1-p)^n,$$
 
 where $p$ is the probability that a node is honest, otherwise it is malicious, and $n$ is the number of replicas.
 
-The statistical security bits of replication could be defined as follows:
+The soundness of replication could be defined as follows:
 
 $$\mathbf{S}(p,n) = -\log_2 \mathbf{P}(p,n).$$
 
 To compare sharding using Shamir's Secret Sharing and replication, we will compare the blowup factor for 64 and 128 bits of security in case the 1/4, 1/2, and 3/4 nodes of the network are honest. 
 
-The comparison is shown in the table in Appendix A. Looking at this data, we can observe:
+From the modeling, we can observe:
 
 1. The blowup factor for replication is much higher than for sharding
 2. The blowup factor for sharding is growing slower than for replication when security is growing
@@ -122,11 +116,16 @@ The comparison is shown in the table in Appendix A. Looking at this data, we can
 If sharding is static, we need just initially select the nodes for each pool. However the uptime of the nodes is not infinite, and if only malicious nodes are left in the pool, the data will be lost. To prevent this problem, we need to mix the nodes in the pools periodically. The mixing should be done in a way, that the malicious nodes cannot predict the new shard for the data.
 
 
+![mixings](../assets/mixings.svg)
+
 Let's consider $n$ as the number of nodes in a pool.
 
-For the best strategy for the malicious actor (assuming that it can not adaptively corrupt honest nodes, but only spawns its own nodes): keep the malicious nodes in the pool and wait when the honest node to go offline, we can describe the evolution of the pool as a Markov process. We can find the equilibrium distribution for this process and find the probability that less than $k$ nodes in the pool are honest.
+For the best strategy for the malicious actor: keep the malicious nodes in the pool and wait when the honest node to go offline, we can describe the evolution of the pool as a Markov process. To protect from this strategy, the network performs $m$ mixings. We can find the equilibrium distribution for this process and find the probability that less than $k$ nodes in the pool are honest.
 
-For example, if $p=1/2$, $k=64$, $n=512$, $m=4$, then soundness is $101$ bits of security.
+For example, if $p=1/2$, $k=64$, $n=512$, $m=3$, then soundness is $115$ bits of security.
+
+![soundness](../assets/soundness.svg)
+
 
 ## Brief protocol description
 
@@ -153,6 +152,45 @@ To prevent spam from malicious nodes with not enough space, we should implement 
 When the node receives the data to store, it can remove the ending part of the plot because then it is not needed for the proof. The node selects $n$ random elements of the remaining plot and sends Merkle proof of these elements to the network.
 
 Another approach is used to make proof, that files are stored at the node. The node picks a random file, represents it as a polynomial, and shows the opening for the commitment of this polynomial to the network. With high probability, if the node can provide this opening, the node stores the file.
+
+The approach how to build plots is described at [AACKPR2017](https://eprint.iacr.org/2017/893.pdf).
+
+To build the plot, let's define 
+
+$f_1(x)=h(x),$
+
+$f_{i+1}(x) = h(x, x_1),$ where
+
+$|f_i(x)+f_i(x_1)| < s_0,$
+
+$ x_1 = 0 \mod s_1 $,
+
+$h$ is a hash function.
+
+At [AACKPR2017](https://eprint.iacr.org/2017/893.pdf) it is shown that the space-time tradeoff formula for $f_n$ takes the form 
+
+$S^n T = O(N^n)$.
+
+If n is big enough, it is optimal for a server to store all data.
+
+To perform spacetime proof, the node receives a random challenge $c$ and should find a $s_0$-close preimage $x_c$ of $f_n$:
+
+$|f_n(x_c)-c| < s_0$, and also provide all computations of $f_n(x_c)$.
+
+
+Proof complexity is growing as $O(2^n)$, so in practice, it is useful to build proof for $k=7$ or $k=8$ ([Chia proof of space construction](https://www.chia.net/wp-content/uploads/2022/09/Chia_Proof_of_Space_Construction_v1.1.pdf)). That means that if the node stores twice less data then it should compute 128 or 256 times more hashes to provide the proof.
+
+Proofs with bigger $k$ could be used inside zkSNARKs.
+
+
+## Applications
+
+The basic protocol provides only storage of fixed-sized blocks of data. For practical cases, we need arbitrary file storage and CRUD key-value databases. 
+
+Editing the blocks is a hard problem because we need to describe polynomial commitments for the whole block not depending on the size of modified data. Additional complexity challenge if we are using non-additive homomorphic commitments, like FRI.
+
+The solution is incremental storage, compatible with existing blockchain technologies, like rollups. The rollup can manage the state when the data is separated into incremental blocks, like in blockchain, and stored in the sharded storage. The problem is growing history: when we modify the same element multiple times, we should store all transactions. The solution is deploying another rollup where someone can write data from the state of the 1st rollup. When all data is moved, we can remove the 1st rollup transactions from the sharded storage.
+
 
 
 
