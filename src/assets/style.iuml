@@ -1,0 +1,8 @@
+hide stereotype
+skinparam backgroundColor #fefefe
+
+<style>
+.RC {
+    RoundCorner 50
+}
+</style>

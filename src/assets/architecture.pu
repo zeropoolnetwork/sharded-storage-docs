@@ -1,13 +1,6 @@
 @startuml
 
-hide stereotype
-skinparam backgroundColor #fefefe
-
-<style>
-.RC {
-    RoundCorner 50
-}
-</style>
+!include style.iuml
 
 rectangle "L1 Blockchain" <<RC>> as l1
 
