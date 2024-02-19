@@ -11,7 +11,7 @@ rectangle l2 <<RC>> [
     * Add new nodes
     * Remove inactive nodes
     * Distribute nodes over pools
-    * Payment channels
+    * Payment bridge
     * Proof of storage mining
 ]
 
