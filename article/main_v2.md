@@ -250,14 +250,42 @@ $$F(x,x^M)-F(x,y_0) = (x^M-y_0) \cdot Q(x),$$
 
 where $Q(x)$ is a quotient polynomial.
 
-### Complexity Leveling
+### Complexity Leveling and Protection Against Centralized Supernodes
 
-Some files could contain low entropy before they are put into sharded storage. To prevent 
-the problem, we can use the following approach:
+Let's consider the following two attack vectors:
 
-1. Add an additional column to the $F_{ij}$ table with random values, taken from the plot.
-2. Define $y_j = g^j s$, where $g$ is a generator of the group, and $s$ is offset, computed 
-from the commitment: $s = \mathrm{H}(\text{Comm}(F(x,x^M)))$.
+1. Files have different entropy. Low entropy files are easier to store. But the reward is 
+the same. That means that malicious nodes can generate large entropy files and store them 
+on small disk drives. To prevent this attack, we need to level the complexity of the data.
+
+2. Also, the nodes can collude and store all the data on one node. If we use k-of-n sharding, 
+this one supernode can store only source data, which has the same complexity as storing k 
+shards only. This is not safe. To prevent this attack, we need to make the same 
+complexity for decentralized and centralized cases, so the nodes will not have any profit 
+from centralization.
+
+All these attacks could be prevented with the following approach:
+
+Each node generates a high entropy plot and makes a commitment of function $G$, which is very
+close to this plot. This fact could be verified with random openings of the polynomial:
+
+$$G(x_i) = \text{plot}(x_i)$$
+
+If we perform enough random openings, we can be sure that the entropy of $G$ is high enough.
+
+The seed of the plot should be derived from the shard commitment. Then the node can store 
+the sum of the shard and plot and provide proof of data availability for this sum to receive
+the reward.
+
+$$F'(x) = F(x, y_0) + G(x)$$
+
+So, minimal storage complexity for all nodes and one malicious supernode is the same, and
+complexity leveling is achieved: it is enough hard to store the array of zeros and the array
+of random values.
+
+If $G$ is not exactly equal to the plot, it does not matter. When the network recovers the data, 
+the honest node can restore the initial data by itself or send the deterministic script on how 
+to do it.
 
 
 ### Selection of Polynomial Commitment Scheme
@@ -267,7 +295,7 @@ our case. The usage of additive-homomorphic commitment schemes could lead to att
 the malicious nodes use MPC to compute proofs of data availability without storing all data.
 
 To build a random proof of random opening of the polynomial commitment, the prover should
-keep all the data. And other nodes cannot help him to compute this proof with MPC procedure.
+keep all the data. Other nodes cannot help him to compute this proof with the MPC procedure.
 
 ## Appendices
 
