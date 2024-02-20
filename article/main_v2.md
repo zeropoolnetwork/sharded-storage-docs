@@ -71,8 +71,8 @@ between all nodes. Also, users rent space at the L3 rollup using their payment b
 aggregates proof of the data availability using function interpolation at random points for data blocks.
 
 At the fourth level, we have storage nodes. The nodes are part of the consensus for the corresponding 
-pool. Also, the nodes store the data and provide proof of data availability. All empty space of 
-the nodes should be filled with the special plots, like in Chia Network, but with some differences, 
+pool. Also, the nodes store the data and provide proof of data availability. All space of 
+the nodes should be filled with special plots, like in Chia Network, but with some differences, 
 making it more suitable for our case and ZK-friendly.
 
 ### Plotting
@@ -228,9 +228,40 @@ For example, if $p=1/2$, $k=64$, $n=512$, $m=3$, then soundness is $115$ bits of
 
 ![soundness](../assets/soundness.svg)
 
-### Space-Time Tradeoff
+### Space-time Tradeoff and Plotting
+
+For proof of space-time mining, we need to build a plot which is an array of high entropy data,
+and computing any one element of this array without storing the whole array should be a hard
+problem.
+
+The approach how to build plots is described at [AACKPR2017](https://eprint.iacr.org/2017/893.pdf).
+
+To build the plot, let's define 
+
+$f_1(x)=h(x),$
+
+$f_{i+1}(x) = h(x, x_1),$ where
+
+$|f_i(x)+f_i(x_1)| < s_0,$
+
+$ x_1 = 0 \mod s_1 $,
+
+$h$ is a hash function.
+
+At [AACKPR2017](https://eprint.iacr.org/2017/893.pdf) it is shown that the space-time tradeoff formula for $f_n$ takes the form 
+
+$S^n T = O(N^n)$.
+
+If n is big enough, it is optimal for a server to store all data.
+
+To perform spacetime proof, the node receives a random challenge $c$ and should find a $s_0$-close preimage $x_c$ of $f_n$:
+
+$|f_n(x_c)-c| < s_0$, and also provide all computations of $f_n(x_c)$.
 
 
+Proof complexity is growing as $O(2^n)$, so in practice, it is useful to build proof for $k=7$ or $k=8$ ([Chia proof of space construction](https://www.chia.net/wp-content/uploads/2022/09/Chia_Proof_of_Space_Construction_v1.1.pdf)). That means that if the node stores twice less data then it should compute 128 or 256 times more hashes to provide the proof.
+
+Proofs with bigger $k$ could be used inside zkSNARKs.
 
 ### Polynomial Representation of the Data
 
