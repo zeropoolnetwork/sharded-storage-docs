@@ -85,8 +85,15 @@ of how it could be implemented.
 
 ## Economic Model
 
-### Fees
+All nodes receive the same reward for storing the data or maintaining the empty space, which is the same complexity due to [complexity leveling](#complexity-leveling-and-protection-against-centralized-supernodes).
 
+The first source of rewards is token emission with a Bitcoin-like formula. Rewards are distributed to the nodes using [proof of space-time mining](#space-time-tradeoff-and-plotting), like in the Chia Network.
+
+The second source of rewards is fees. First, let's consider the simplified model: we have time epochs, and the nodes rent space for these epochs. The rent is paid in tokens.
+
+Let $c$ be the average price for the previous epoch, and $c'$ is the price for the next epoch. 
+
+In the new epoch, the users can buy out the slots with price from $\alpha c$ til $\beta c$.
 
 
 ## Theoretical framework
