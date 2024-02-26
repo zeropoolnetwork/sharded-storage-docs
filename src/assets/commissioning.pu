@@ -1,0 +1,37 @@
+@startuml
+
+!include style.iuml
+!include drawpool.iuml
+
+
+$DrawPool("Pool", 0)
+$DrawPool("Pool", 1)
+$DrawPool("Commissioning Pool", 2)
+$DrawPool("Unallocated", 3)
+
+
+
+node0 ---> node12
+node1 ---> node13
+node3 ---> node14
+node7 ---> node15
+node9 ---> node16
+node10 ---> node17
+
+node18 ---> node0
+node19 ---> node1
+node20 ---> node3
+node21 ---> node7
+node22 ---> node9
+node23 ---> node10
+
+
+pool0 -[hidden]-- pool1
+pool0 -[hidden]-- pool2
+pool2 -[hidden]-- pool3
+pool1 -[hidden]-- pool3
+
+
+
+
+@enduml

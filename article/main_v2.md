@@ -49,6 +49,8 @@ in proofs of rollup state transitions. It will allow us
 
 ## Architecture
 
+### Description
+
 ![Architecture](../assets/architecture.svg)
 
 Let's consider a 4-level model of the sharded storage network:
@@ -64,16 +66,39 @@ At the second level, we have the L2 rollup. It checks proofs of space-time for n
 the list of active nodes, removes inactive nodes, and performs mixing of nodes between pools to prevent 
 potential attacks. Also, state-to-state transition proofs for L3 rollups are published here.
 
-
 At the third level, we have the L3 rollup. The sharding means that we need to convert the data into $n$ 
 shards when $k\leq n$ shards are enough to restore the data. The L3 rollup is responsible for consistency 
 between all nodes. Also, users rent space at the L3 rollup using their payment bridges. L3 rollup 
 aggregates proof of the data availability using function interpolation at random points for data blocks.
 
+Users and smart contracts can rent space for the tokens with the L3 rollup. So, the set of all L3 rollups is working as a very big decentralized HDD with CRUD operations on sectors of this disk.
+
 At the fourth level, we have storage nodes. The nodes are part of the consensus for the corresponding 
 pool. Also, the nodes store the data and provide proof of data availability. All space of 
 the nodes should be filled with special plots, like in Chia Network, but with some differences, 
 making it more suitable for our case and ZK-friendly.
+
+
+
+### Commissioning and Decommissioning of L3 pools
+
+Nodes can join and leave the pool at any time. The L2 rollup is responsible for commissioning and decommissioning L3 pools depending on the number of unallocated nodes. 
+
+#### Commissioning
+
+![commissioning](../assets/commissioning.svg)
+
+Commissioning of the pool is a simple process: the L2 rollup selects a random set of nodes from existing nodes in other pools and replaces them with unallocated nodes. When the number of nodes in a new pool reaches a level with enough security, the pool is commissioned.
+
+
+#### Decommissioning
+
+![decommissioning](../assets/decommissioning.svg)
+
+Decommissioning is a more complex procedure. At first, the L2 rollup selects two pools with a low percentage of rented space. Then it moves all data from one pool to another. After that, the nodes of the empty pool are considered to be unallocated and the pool is removed from the list of active pools.
+
+> [!TIP]
+> Obvious issue is how to force users make some pools empty. This is like a disk defragmentation problem, but our disk is very big and decentralized, that's why we need to address this problem by designing a special economic model. Each pool will have fee rate depending on the percentage of rented space and it's index. *TODO: Add link to the economic model section* Also, the L2 rollup can provide some incentives for the users to move their data from one pool to another.
 
 ### Plotting
 

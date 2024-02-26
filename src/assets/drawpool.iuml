@@ -1,0 +1,22 @@
+!procedure $DrawPool($label, $n)
+
+    rectangle "$label" <<RC>> as %string("pool"+$n) {
+        !$i=0
+        !while $i < 6
+            usecase Node as %string("node"+($n*6+$i))
+            !$i=$i+1
+        !endwhile
+
+        %string("node"+($n*6)) -r[hidden]- %string("node"+($n*6+1))
+        %string("node"+($n*6+1)) -r[hidden]- %string("node"+($n*6+2))
+
+        %string("node"+($n*6+3)) -r[hidden]- %string("node"+($n*6+4))
+        %string("node"+($n*6+4)) -r[hidden]- %string("node"+($n*6+5))
+
+        %string("node"+($n*6)) -d[hidden]- %string("node"+($n*6+3))
+        %string("node"+($n*6+1)) -d[hidden]- %string("node"+($n*6+4))
+        %string("node"+($n*6+2)) -d[hidden]- %string("node"+($n*6+5))
+
+
+    } 
+!endprocedure

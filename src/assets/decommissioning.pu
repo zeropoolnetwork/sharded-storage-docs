@@ -5,20 +5,20 @@
 
 
 $DrawPool("Pool", 0)
-$DrawPool("Pool", 1)
-$DrawPool("Pool", 2)
+$DrawPool("Merging Pool", 1)
+$DrawPool("Decomissioning Pool", 2)
 $DrawPool("Unallocated", 3)
 
 
 
-usecase Node as node3 #LightPink
-usecase Node as node18 #LightGreen
+node12 ---> node18
+node13 ---> node19
+node14 ---> node20
+node15 ---> node21
+node16 ---> node22
+node17 ---> node23
 
-
-node12 ---> node3
-node18 ---> node12
-node0 <---> node14
-node1 <---> node11
+pool2 --|> pool1 : merge data
 
 pool0 -[hidden]-- pool1
 pool0 -[hidden]-- pool2
