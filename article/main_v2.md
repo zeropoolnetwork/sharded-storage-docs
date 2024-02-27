@@ -42,11 +42,6 @@ Also, our solution is native zkSNARK-friendly. That means that we can include pr
 in proofs of rollup state transitions. It will allow us 
 
 
-### Comparison with existing solutions
-
-> :memo: **TODO:** write a table with a comparison of sharding and replication
-
-
 ## Architecture
 
 ### Description
@@ -58,7 +53,8 @@ Let's consider a 4-level model of the sharded storage network:
 At the first level, we have the L1 blockchain. The L2 rollup publishes state-to-state transition 
 proofs and the root hash of the state.
 
-> [!TIP]
+
+
 > We do not need to publish the data of blocks. We are describing sharded storage, so, all data will 
 be safely stored at the nodes and the zk proof contains the proof of data availability.
 
@@ -97,8 +93,7 @@ Commissioning of the pool is a simple process: the L2 rollup selects a random se
 
 Decommissioning is a more complex procedure. At first, the L2 rollup selects two pools with a low percentage of rented space. Then it moves all data from one pool to another. After that, the nodes of the empty pool are considered to be unallocated and the pool is removed from the list of active pools.
 
-> [!TIP]
-> Obvious issue is how to force users make some pools empty. This is like a disk defragmentation problem, but our disk is very big and decentralized, that's why we need to address this problem by designing a special economic model. Each pool will have fee rate depending on the percentage of rented space and it's index. *TODO: Add link to the economic model section* Also, the L2 rollup can provide some incentives for the users to move their data from one pool to another.
+> Obvious issue is how to force users make some pools empty. This is like a disk defragmentation problem, but our disk is very big and decentralized, that's why we need to address this problem by designing a special economic model. Each pool will have fee rate depending on the percentage of rented space. You can read more about it at [Economic Model](#economic-model) section. Also, the L2 rollup can provide some incentives for the users to move their data from one pool to another.
 
 ### Plotting
 
@@ -108,18 +103,61 @@ allowing nodes to prove, that they have enough space to store the data.
 In the chapter [Space-Time Tradeoff](#space-time-tradeoff), we will provide a more exact description, 
 of how it could be implemented.
 
+## Use Cases
+
+At the low level, the network is a very big decentralized HDD with large (megabytes) sectors. As bare metal HDDs, it provides CRUD operations on sectors, which is directly inefficient for many cases like small files or databases. However, it is very efficient for storing big files, like videos, images, and backups.
+
+Also, it is efficient for rollups: the rollups can store their blocks in sectors of the network and merge state transition zk proofs with proofs of data availability.
+
+This approach makes validiums obsolete. We can upgrade validiums to rollups keeping the same level of security and cost of the storage.
+
+On the rollup level, we can implement all remaining use cases, like databases, small files, and so on.
+
+Also, we can solve the problem of blockchain bloat. We can directly fulfill the rollup state at the checkpoint and then all history of the rollup before the checkpoint could be removed. 
+
+Also, very cheap storage allows us to implement a lot of web2 solutions, like messengers, social networks, blogs, games, and so on on the blockchain with true decentralization.
+
+
 ## Economic Model
 
 All nodes receive the same reward for storing the data or maintaining the empty space, which is the same complexity due to [complexity leveling](#complexity-leveling-and-protection-against-centralized-supernodes).
 
 The first source of rewards is token emission with a Bitcoin-like formula. Rewards are distributed to the nodes using [proof of space-time mining](#space-time-tradeoff-and-plotting), like in the Chia Network.
 
-The second source of rewards is fees. First, let's consider the simplified model: we have time epochs, and the nodes rent space for these epochs. The rent is paid in tokens.
+Another source of rewards is the fee for space rent. 
 
-Let $c$ be the average price for the previous epoch, and $c'$ is the price for the next epoch. 
+The fee should depend on:
 
-In the new epoch, the users can buy out the slots with price from $\alpha c$ til $\beta c$.
+1. percentage of rented space. The more space is rented, the higher the fee. The dependency should be hyperbolic, so the fee will be very high when the pool is almost full. Then if somebody wants to rent all free space, the fee will grow very fast.
 
+$$\text{fee} = O\left(\text{free\_space\_part}^{-1}\right)$$
+
+2. percentage of rented space. If more space is rented, the multiplier is exponentially growing over time. If less space is rented, the multiplier is exponentially decreasing over time.
+
+$$\mathbf{\delta} \text{fee} = \text{fee}\cdot(\text{free\_space\_part} - \beta)\cdot \gamma \mathbf{\delta}t$$
+
+The solution of this equation is
+
+$$\text{fee} = O\left(\exp(\text{cum\_free\_space\_part}(t) - \beta t)\right),$$
+where $$\text{cum\_free\_space\_part}(t) = \int\limits_0^t \text{free\_space\_part}(t) \mathbf{d}t$$
+
+
+
+3. Percentage of rented space of the pool. The more space is rented, the lower the fee. The dependency should be linear. $$\text{fee} = O\left(\alpha - \text{pool\_free\_space}\right)$$
+
+
+The resulting formula takes the form:
+
+$$\text{fee} = K \cdot \frac{\alpha - \text{pool\_free\_space}}{\text{free\_space\_part}} \cdot \exp\left(\int\limits_0^t \text{free\_space\_part}(t) \mathbf{d}t - \beta t\right)$$
+
+Also, to make the network more stable, we propose the following mechanism:
+
+1. Each node instantly receives only part of the reward. The rest of the reward is locked for some time. If the node goes offline, the locked reward is burned.
+
+2. Prolonging the rent of the existing space should be cheaper than renting a new space by some discount factor.
+
+
+During the setup of the network, a significant part of rewards should be generated by the mining. Then, when the network is stable, the fee for space rent should be the main source of rewards.
 
 ## Theoretical framework
 
@@ -137,7 +175,7 @@ get M values. Then we distribute these values among M participants. The secret c
 N values.
 
 
-> [!TIP]
+
 > The way we use Shamir's Secret Sharing here can be alternatively characterized as encoding the data 
 with [Reed–Solomon Error Correcting Code](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction) 
 and decoding with erasures (not errors). Especially since the message we encode is not secret. In the following, 
@@ -175,7 +213,7 @@ Then the secret can be restored as follows:
 
 $$\mathbf{S_j} = \sum_{i} \mathbf{V_i} \cdot L_{ij}$$
 
-> [!NOTE]
+
 > What happens, if some of the participants are malicious and send incorrect values? To prevent 
 this problem, there are a lot of ways. For our partial case, we will merkelize all values and 
 distribute them to all participants with Merkle proofs. Then we can check the correctness of 
@@ -276,7 +314,7 @@ $f_{i+1}(x) = h(x, x_1),$ where
 
 $|f_i(x)+f_i(x_1)| < s_0,$
 
-$ x_1 = 0 \mod s_1 $,
+$x_1 = 0 \mod s_1,$
 
 $h$ is a hash function.
 
@@ -360,5 +398,20 @@ the malicious nodes use MPC to compute proofs of data availability without stori
 To build a random proof of random opening of the polynomial commitment, the prover should
 keep all the data. Other nodes cannot help him to compute this proof with the MPC procedure.
 
-## Appendices
 
+### State of the Node and Data Availability Mining
+
+Each data sector of the node could be represented as a polynomial. The node can store all polynomial commitments inside the Merkle tree. Then proof of data availability could be computed as a set of random openings of the polynomial commitments at random points. Challenge values for the openings and commitment selection could be derived from the timestamps of the blocks of the L2 rollup. The proofs of data availability can be compressed using recursive zkSNARKs.
+
+
+## Conclusion
+
+This article has presented a novel sharded storage solution leveraging blockchain technology to tackle the significant challenge of scaling storage for vast data volumes, reaching beyond petabytes. By integrating Shamir's Secret Sharing and Fast Fourier Transform, we have developed a framework that not only surpasses the limitations of current replication-based methods but also seamlessly integrates with zkSNARK-friendly environments. This enables the secure and efficient storage of data with the cost-effectiveness of Web2 solutions while maintaining the robust security features characteristic of Web3 applications.
+
+Our proposed architecture redefines the concept of data storage and retrieval within blockchain networks, offering a scalable, fault-tolerant solution that significantly reduces the necessity for on-chain data storage. This advancement allows for the transformation of validiums into rollups, thereby enhancing their utility and efficiency. The economic model underpinning our solution ensures a fair and incentivized participation of nodes, thereby promoting a healthy and dynamic ecosystem conducive to the long-term sustainability of the network.
+
+Comparative analyses have highlighted the superiority of our sharded storage solution over traditional replication methods, demonstrating a significant reduction in the blowup factor required to achieve comparable levels of security. Furthermore, our approach to dynamic node mixing and space-time tradeoffs introduces a robust mechanism against potential malicious activities, ensuring the integrity and availability of data within the network.
+
+The theoretical framework presented herein lays a solid foundation for future research and development in the field of blockchain storage solutions. It opens new avenues for the application of blockchain technology in areas previously constrained by storage limitations, such as large-scale data backups, content delivery networks, and decentralized applications requiring extensive data storage capabilities.
+
+In conclusion, the Blockchain Sharded Storage solution represents a significant leap forward in the quest for scalable, secure, and cost-effective data storage on the blockchain. It addresses the critical challenges faced by current blockchain infrastructures, offering a viable pathway towards the realization of truly decentralized, efficient, and secure data storage systems. As we continue to explore and refine this technology, it is poised to become a cornerstone in the development of next-generation blockchain applications, furthering the integration of blockchain technology into mainstream use cases and marking a pivotal moment in the evolution of decentralized data storage.
