@@ -7,3 +7,7 @@ This repository hosts the documentation for a novel sharded storage solution for
 ## Abstract
 
 The document outlines a strategy for horizontally scalable, fault-tolerant storage within the blockchain ecosystem. By leveraging advanced cryptographic techniques, it proposes a method to reduce the need for on-chain storage of rollup blocks, potentially upgrading validiums to rollups without compromising on security or cost.
+
+## Getting Started
+
+Review the [article](./article/main.md).
