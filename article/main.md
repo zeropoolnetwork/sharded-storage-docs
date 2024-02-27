@@ -130,25 +130,27 @@ The fee should depend on:
 
 1. percentage of rented space. The more space is rented, the higher the fee. The dependency should be hyperbolic, so the fee will be very high when the pool is almost full. Then if somebody wants to rent all free space, the fee will grow very fast.
 
-$$\text{fee} = O\left(\text{free\_space\_part}^{-1}\right)$$
+$$\phi = O\left(\Psi^{-1}\right),$$
+where $\Psi$ is part of free space in the whole network, $\phi$ is fee.
 
 2. percentage of rented space. If more space is rented, the multiplier is exponentially growing over time. If less space is rented, the multiplier is exponentially decreasing over time.
 
-$$\mathbf{\delta} \text{fee} = \text{fee}\cdot(\text{free\_space\_part} - \beta)\cdot \gamma \mathbf{\delta}t$$
+$$\mathbf{d} \phi = \phi\cdot(\Psi - \beta)\cdot \gamma \mathbf{d}t$$
 
 The solution of this equation is
 
-$$\text{fee} = O\left(\exp(\text{cum\_free\_space\_part}(t) - \beta t)\right),$$
-where $$\text{cum\_free\_space\_part}(t) = \int\limits_0^t \text{free\_space\_part}(t) \mathbf{d}t$$
+$$\phi = O\left(\exp(\int\limits_0^t \Psi(t) \mathbf{d}t - \beta t)\right),$$
 
 
 
-3. Percentage of rented space of the pool. The more space is rented, the lower the fee. The dependency should be linear. $$\text{fee} = O\left(\alpha - \text{pool\_free\_space}\right)$$
+
+3. Percentage of rented space of the pool. The more space is rented, the lower the fee. The dependency should be linear. $$\phi = O\left(\alpha - \psi\right),$$
+where $\psi$ is part of free space in the current pool.
 
 
 The resulting formula takes the form:
 
-$$\text{fee} = K \cdot \frac{\alpha - \text{pool\_free\_space}}{\text{free\_space\_part}} \cdot \exp\left(\int\limits_0^t \text{free\_space\_part}(t) \mathbf{d}t - \beta t\right)$$
+$$\phi = K \cdot \frac{\alpha - \psi}{\Psi} \cdot \exp\left(\int\limits_0^t \Psi(t) \mathbf{d}t - \beta t\right)$$
 
 Also, to make the network more stable, we propose the following mechanism:
 
