@@ -60,11 +60,16 @@ Additionally, our solution is natively zkSNARK-friendly, as its polynomial compu
 
 ## Architecture
 
-### Description
+In this section, we first give a high-level overview of proposed L1-L3 architecture.
+Then describe commissioning and decommissioning of L3 pools.
+And finally we discuss plotting,
+  the mechanism nodes use to prove that they have enough space to store the shards.
+
+### Overview
+
+Consider a 4-level model of the sharded storage network illustrated below.
 
 ![Architecture](../assets/architecture.svg)
-
-Let's consider a 4-level model of the sharded storage network:
 
 At the first level, we have the L1 blockchain. The L2 rollup publishes state-to-state transition 
 proofs and the root hash of the state.
