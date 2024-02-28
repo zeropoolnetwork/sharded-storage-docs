@@ -39,7 +39,7 @@ the nodes go offline.
 Below we propose our solution to solve these problems.
 
 Also, our solution is native zkSNARK-friendly. That means that we can include proofs of data availability 
-in proofs of rollup state transitions. It will allow us 
+in proofs of rollup state transitions. It will allow us to upgrade validiums to rollups with close to zero cost of data storage.
 
 
 ## Architecture
@@ -139,7 +139,7 @@ $$\mathbf{d} \phi = \phi\cdot(\Psi - \beta)\cdot \gamma \mathbf{d}t$$
 
 The solution of this equation is
 
-$$\phi = O\left(\exp(\int\limits_0^t \Psi(t) \mathbf{d}t - \beta t)\right),$$
+$$\phi = O\left(\exp(\gamma\int\limits_0^t (\Psi(t)-\beta) \mathbf{d}t)\right),$$
 
 
 
@@ -150,7 +150,7 @@ where $\psi$ is part of free space in the current pool.
 
 The resulting formula takes the form:
 
-$$\phi = K \cdot \frac{\alpha - \psi}{\Psi} \cdot \exp\left(\int\limits_0^t \Psi(t) \mathbf{d}t - \beta t\right)$$
+$$\phi = K \cdot \frac{\alpha - \psi}{\Psi} \cdot \exp\left(\gamma \int\limits_0^t (\Psi(t)-\beta) \mathbf{d}t\right)$$
 
 Also, to make the network more stable, we propose the following mechanism:
 
