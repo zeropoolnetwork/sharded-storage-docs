@@ -2,45 +2,61 @@
 
 ## Abstract
 
-CPU scaling for blockchain is solved. However, storage scaling is still a problem. This document describes 
-a sharded storage solution for blockchain to store really big amounts of data (beyond petabytes) with Web2 
-cost and Web3 security. With this solution, rollups no longer need to store their blocks on-chain. In other 
-words, we can upgrade validiums to rollups. The solution is based on [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing) 
-and [Fast Fourier Transform](https://zcash.github.io/halo2/background/polynomials.html#fast-fourier-transform-fft). 
-If we have N numbers, we can represent it as a polynomial of degree N-1. We can evaluate this polynomial 
-at M points and get M values. Then we can restore the polynomial from any N values. In the note, we will 
-show how to use this approach to build horizontal scalable fault-tolerant storage.
+CPU scaling for blockchain is solved. However, storage scaling is still a problem. This document
+describes a horizontal scalable fault-tolerant storage solution for blockchain that can process
+large amounts of data (beyond petabytes) with Web2 storage overhead and Web3 security. With this
+solution, rollups no longer need to store their blocks on-chain. In other words, we can upgrade
+validiums to rollups.
+
+Our solution uses [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
+to split the payload into shards and distribute it among nodes for storage,
+and later retrieve the shards and recover the payload using [Fast Fourier
+Transform](https://zcash.github.io/halo2/background/polynomials.html#fast-fourier-transform-fft).
+Nodes are paid by the file owner for storing the shards, which is periodically verified using
+zkSNARK. We employ a special shuffling technique to decide which nodes will store the shards of a
+given file.  As long as at least half of the network behaves honestly, this technique ensures that
+a malicious adversary can not cause a DoS attack on the file by controlling critical number of its
+shards.
+
+We present the details of our solution, formally analyze the cryptographic security guarrantees it
+provides and propose a set of economic incentives to motivate honest node behavior.
 
 ## Introduction
 
 ### Problem Statement
 
-One of the commonly used existing solutions is replication of data. It stores each data chunk should 
-at multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes 
+One of the solutions used for storage scaling today is replication of data. It stores each chunk of payload
+on multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes
 storing the chunks is low, the network distributes the chunks to other nodes.
 
-Let's discuss some of the disadvantages of this approach making it more expensive than Web2 storage.
+Let's discuss the features of this approach that make it more expensive than Web2 storage.
 
-1. Replication of data. If we want to build a 50% fault-tolerant network with 128 bits of security, 
+1. Redundancy. If we want to build a 50% fault-tolerant network with 128 bits of security,
 we need to replicate data 128 times. It means that the network should store and transfer 128 times 
-more data than the original data size.
+more data than the payload.
 
-2. Zero-knowledge proofs of data availability. The data replicas contain the same information. However, 
-we need to implement a unique representation for each replica. Otherwise, multiple nodes can collude and 
-store only one replica. Replica-to-replica transformation should be a complex problem to prevent collusion 
-and force each node to store its replica. It means that the zero-knowledge proof of data availability 
-becomes a complex problem.
+2. Preventing deduplication. The replicas of stored data are identical, therefore
+the nodes that are storing them could try to collude and deduplicate it: collectively store only one
+replica, saving the costs, but bill the network for storing many replicas. The network mitigates
+this by applying a distinct encoding to each replica and requiring each node to periodically
+prove that it holds the encoding given to it. This encoding makes conversion between replicas
+computationally hard, making deduplication impractical.
 
-3. Data distribution. The nodes go online and offline. If a malicious actor controls a significant part 
-of the network, they can try to collect all data replicas for one file one by one, which will lead 
-to data loss. The sound way to prevent it is random redistribution of data replicas when some of 
-the nodes go offline.
+   The drawback of this approach is that zero-knowledge proofs now need to be aware of the encoding,
+adding extra computational overhead.
 
-Below we propose our solution to solve these problems.
+3. Data distribution. The nodes holding replicas of a file may go offline at any moment. When
+this happens, the network redistributes the replicas to more nodes to ensure the needed level of
+redundancy. If an adversary controls large portion of the network nodes, it could An adversary who
+controls large portion of the network could use this mechanism to try to collect all replicas of a
+given file.
 
-Also, our solution is native zkSNARK-friendly. That means that we can include proofs of data availability 
-in proofs of rollup state transitions. It will allow us 
+   The network mitigates this by periodically randomly shuffling nodes between the pools of
+different files. Informally speaking, this ensures that the fraction of adversary's nodes in each
+pool does not exceed the fraction of its nodes in the whole network.
 
+In the following sections we propose our solution to this problem with better security and performance than replication.
+Additionally, our solution is natively zkSNARK-friendly, as its polynomial computations can be effeciently done in a zkSNARK. That means that we can include proofs of data availability in proofs of rollup state transitions. It will allow us to upgrade validiums to rollups with close to zero cost of data storage.
 
 ## Architecture
 
