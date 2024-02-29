@@ -51,12 +51,19 @@ redundancy. If an adversary controls large portion of the network nodes, it coul
 controls large portion of the network could use this mechanism to try to collect all replicas of a
 given file.
 
+
    The network mitigates this by periodically randomly shuffling nodes between the pools of
 different files. Informally speaking, this ensures that the fraction of adversary's nodes in each
 pool does not exceed the fraction of its nodes in the whole network.
 
+Also, our solution is native zkSNARK-friendly. That means that we can include proofs of data availability 
+in proofs of rollup state transitions. It will allow us to upgrade validiums to rollups with close to zero cost of data storage.
+
+
 In the following sections we propose our solution to this problem with better security and performance than replication.
-Additionally, our solution is natively zkSNARK-friendly, as its polynomial computations can be effeciently done in a zkSNARK. That means that we can include proofs of data availability in proofs of rollup state transitions. It will allow us to upgrade validiums to rollups with close to zero cost of data storage.
+Additionally, our solution is natively zkSNARK-friendly, as its polynomial computations can be effeciently done in a zkSNARK. 
+That means that we can include proofs of data availability in proofs of rollup state transitions. It will allow us to upgrade 
+validiums to rollups with close to zero cost of data storage.
 
 ## Architecture
 
@@ -160,7 +167,7 @@ $$\mathbf{d} \phi = \phi\cdot(\Psi - \beta)\cdot \gamma \mathbf{d}t$$
 
 The solution of this equation is
 
-$$\phi = O\left(\exp(\int\limits_0^t \Psi(t) \mathbf{d}t - \beta t)\right),$$
+$$\phi = O\left(\exp(\gamma\int\limits_0^t (\Psi(t)-\beta) \mathbf{d}t)\right),$$
 
 
 
@@ -171,7 +178,7 @@ where $\psi$ is part of free space in the current pool.
 
 The resulting formula takes the form:
 
-$$\phi = K \cdot \frac{\alpha - \psi}{\Psi} \cdot \exp\left(\int\limits_0^t \Psi(t) \mathbf{d}t - \beta t\right)$$
+$$\phi = K \cdot \frac{\alpha - \psi}{\Psi} \cdot \exp\left(\gamma \int\limits_0^t (\Psi(t)-\beta) \mathbf{d}t\right)$$
 
 Also, to make the network more stable, we propose the following mechanism:
 
