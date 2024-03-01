@@ -3,7 +3,7 @@
 ## Abstract
 
 CPU scaling for blockchain is solved. However, storage scaling is still a problem. This document
-describes a horizontal scalable fault-tolerant storage solution for blockchain that can process
+describes a horizontally scalable fault-tolerant storage solution for blockchain that can process
 large amounts of data (beyond petabytes) with Web2 storage overhead and Web3 security. With this
 solution, rollups no longer need to store their blocks on-chain. In other words, we can upgrade
 validiums to rollups.
@@ -25,9 +25,11 @@ provides and propose a set of economic incentives to motivate honest node behavi
 
 ### Problem Statement
 
-One of the solutions used for storage scaling today is replication of data. It stores each chunk of payload
-on multiple nodes. Nodes produce zero-knowledge proofs of data availability. When the number of nodes
-storing the chunks is low, the network distributes the chunks to other nodes.
+One of the solutions used for storage scaling on blockchain today is replication of data.
+It stores each chunk of payload on multiple nodes.
+Nodes produce zero-knowledge proofs of data availability.
+When the number of nodes storing the chunks is low,
+  the network distributes the chunks to other nodes.
 
 Let's discuss the features of this approach that make it more expensive than Web2 storage.
 
@@ -43,31 +45,38 @@ prove that it holds the encoding given to it. This encoding makes conversion bet
 computationally hard, making deduplication impractical.
 
    The drawback of this approach is that zero-knowledge proofs now need to be aware of the encoding,
-adding extra computational overhead.
+     adding extra computational overhead for honest nodes.
 
-3. Data distribution. The nodes holding replicas of a file may go offline at any moment. When
-this happens, the network redistributes the replicas to more nodes to ensure the needed level of
-redundancy. If an adversary controls large portion of the network nodes, it could An adversary who
-controls large portion of the network could use this mechanism to try to collect all replicas of a
-given file.
+3. Data distribution.
+The nodes holding replicas of a file may go offline at any moment.
+When this happens, the network redistributes the replicas to more nodes
+  to ensure the needed level of redundancy.
+An adversary who controls large portion of the network
+  could use this mechanism to try to collect all replicas of a given file.
 
 
-   The network mitigates this by periodically randomly shuffling nodes between the pools of
-different files. Informally speaking, this ensures that the fraction of adversary's nodes in each
-pool does not exceed the fraction of its nodes in the whole network.
-
-Also, our solution is native zkSNARK-friendly. That means that we can include proofs of data availability 
-in proofs of rollup state transitions. It will allow us to upgrade validiums to rollups with close to zero cost of data storage.
-
+   The network mitigates this by periodically randomly shuffling nodes between the pools of different files.
+   Informally speaking, this ensures that the fraction of adversary's nodes in each pool stays close to the fraction of its nodes in the whole network.
 
 In the following sections we propose our solution to this problem with better security and performance than replication.
-Additionally, our solution is natively zkSNARK-friendly, as its polynomial computations can be effeciently done in a zkSNARK. 
-That means that we can include proofs of data availability in proofs of rollup state transitions. It will allow us to upgrade 
-validiums to rollups with close to zero cost of data storage.
+Additionally, our solution is natively zkSNARK-friendly,
+  as its polynomial computations can be effeciently done in a zkSNARK.
+That means that we can include proofs of data availability in proofs of rollup state transitions with little overhead.
+It will allow us to upgrade validiums to rollups with close to zero cost of data storage.
+
+Our solution implements data redistribution similarly to the above to account for nodes going offline.
+We additionally periodically shuffle the nodes between the pools
+  to make sure that malicious nodes are distributed evenly between the pools,
+  and that adversary can not monotonously increase the presence of malicious nodes in a given pool
+    due to honest nodes of that pool going offline over time.
 
 ### Use Cases
 
-At the low level, the network is a very big decentralized HDD with large (megabytes) sectors. As bare metal HDDs, it provides CRUD operations on sectors, which is directly inefficient for many cases like small files or databases. However, it is very efficient for storing big files, like videos, images, and backups.
+Our proposed solution can be seen a very big decentralized HDD with large (megabytes) sectors.
+As bare metal HDDs,
+  it provides CRUD operations on sectors,
+  which is directly inefficient for many cases like small files or databases.
+However, it is very efficient for storing big files, like videos, images, and backups.
 
 Also, it is efficient for rollups: the rollups can store their blocks in sectors of the network and merge state transition zk proofs with proofs of data availability.
 
@@ -77,7 +86,8 @@ On the rollup level, we can implement all remaining use cases, like databases, s
 
 Also, we can solve the problem of blockchain bloat. We can directly fulfill the rollup state at the checkpoint and then all history of the rollup before the checkpoint could be removed. 
 
-Also, very cheap storage allows us to implement a lot of web2 solutions, like messengers, social networks, blogs, games, and so on on the blockchain with true decentralization.
+Also, very cheap storage may enable us to implement a lot of web2 solutions,
+  like messengers, social networks, blogs, games, and so on on the blockchain with true decentralization.
 
 ## Preliminaries
 
@@ -94,8 +104,6 @@ represent the N-sized secret as a polynomial of degree N-1. We can evaluate this
 get M values. Then we distribute these values among M participants. The secret can be restored from any 
 N values.
 
-
-
 > The way we use Shamir's Secret Sharing here can be alternatively characterized as encoding the data 
 with [Reed–Solomon Error Correcting Code](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction) 
 and decoding with erasures (not errors). Especially since the message we encode is not secret. In the following, 
@@ -105,6 +113,10 @@ For well-selected $N$ and $M$, we can restore the secret if most of the particip
 We will use this property to build a fault-tolerant storage of publicly available data.
 
 ### Polynomial Computation for Data Recovery
+
+One can recvover a secret shared using Shamir's scheme using
+  [Lagrange interpolation](https://en.wikipedia.org/wiki/Lagrange_polynomial),
+  we briefly outline the mechanism below.
 
 Let's consider $p(x)$ is a polynomial of degree $N-1$ and the secret is the evaluation representation of 
 this polynomial over evaluation domain $\mathbf{D}=\{0,\ 1,\ 2,\ ...,\ N-1\}$:
@@ -133,18 +145,21 @@ Then the secret can be restored as follows:
 
 $$\mathbf{S_j} = \sum_{i} \mathbf{V_i} \cdot L_{ij}$$
 
-
-> What happens, if some of the participants are malicious and send incorrect values? To prevent 
-this problem, there are a lot of ways. For our partial case, we will merkelize all values and 
-distribute them to all participants with Merkle proofs. Then we can check the correctness of 
-each value, checking the root of the Merkle proof. If the root is incorrect, we can ignore 
-the value.
+> What happens if some of the participants are malicious and send incorrect values?
+There is more than one way to solve this.
+For our partial case, we will merkelize all values and distribute them to all participants with Merkle proofs.
+Then we can check the correctness of each value,
+  checking the root of the Merkle proof.
+If the root is incorrect, we can ignore the value.
+In terms of error-correcting codes, this corresponds to an erasure.
 
 ### zkSNARKs
 
 TODO
 
 ### Polynomial Commitment Schemes
+
+TODO
 
 #### Selection of Polynomial Commitment Scheme
 
@@ -204,24 +219,32 @@ Consider a 4-level model of the sharded storage network illustrated below.
 
 ![Architecture](../assets/architecture.svg)
 
-At the first level, we have the L1 blockchain. The L2 rollup publishes state-to-state transition 
-proofs and the root hash of the state.
-
-
+At the first level, we have the L1 blockchain.
+The L2 rollup publishes state-to-state transition proofs
+  and the root hash of the state on L1 blockchain.
 
 > We do not need to publish the data of blocks. We are describing sharded storage, so, all data will 
 be safely stored at the nodes and the zk proof contains the proof of data availability.
 
-At the second level, we have the L2 rollup. It checks proofs of space-time for new nodes, adds it to 
-the list of active nodes, removes inactive nodes, and performs mixing of nodes between pools to prevent 
-potential attacks. Also, state-to-state transition proofs for L3 rollups are published here.
+At the second level, we have the L2 rollup.
+It checks proofs of space-time for new nodes,
+  adds it to the list of active nodes, removes inactive nodes,
+  and performs mixing of nodes between pools to prevent potential attacks.
+Also, state-to-state transition proofs for L3 rollups are published here.
 
-At the third level, we have the L3 rollup. The sharding means that we need to convert the data into $n$ 
-shards when $k\leq n$ shards are enough to restore the data. The L3 rollup is responsible for consistency 
-between all nodes. Also, users rent space at the L3 rollup using their payment bridges. L3 rollup 
-aggregates proof of the data availability using function interpolation at random points for data blocks.
+At the third level, we have the L3 rollup.
+  The sharding means that we need to convert the data into $n$ shards when $k\leq n$ shards are enough to restore the data.
+The L3 rollup is responsible for consistency between all nodes.
+Also, users rent space at the L3 rollup using their payment bridges.
+L3 rollup aggregates proof of the data availability using function interpolation at random points for data blocks.
 
-Users and smart contracts can rent space for the tokens with the L3 rollup. So, the set of all L3 rollups is working as a very big decentralized HDD with CRUD operations on sectors of this disk.
+The L2 and L3 rollups run their own consensus protocols powered by the underlying L1 blockchain
+  (e.g. using [Proof of authority](https://en.wikipedia.org/wiki/Proof_of_authority)).
+They can perform their own operations and maintain their own state synchronizing every step with L1 blockchain,
+  and only referring to when they explicitly choose to (e.g. to save their state hash).
+
+Users and smart contracts can rent space for the tokens with the L3 rollup.
+So, the set of all L3 rollups is working as a very big decentralized HDD with CRUD operations on sectors of this disk.
 
 At the fourth level, we have storage nodes. The nodes are part of the consensus for the corresponding 
 pool. Also, the nodes store the data and provide proof of data availability. All space of 
@@ -232,22 +255,54 @@ making it more suitable for our case and ZK-friendly.
 
 ### Commissioning and Decommissioning of L3 pools
 
-Nodes can join and leave the pool at any time. The L2 rollup is responsible for commissioning and decommissioning L3 pools depending on the number of unallocated nodes. 
+Nodes can join and leave the pool at any time.
+The L2 rollup is responsible for commissioning and decommissioning L3 pools
+  depending on the number of unallocated nodes and the amount of data on in the pools.
 
 #### Commissioning
 
 ![commissioning](../assets/commissioning.svg)
 
-Commissioning of the pool is a simple process: the L2 rollup selects a random set of nodes from existing nodes in other pools and replaces them with unallocated nodes. When the number of nodes in a new pool reaches a level with enough security, the pool is commissioned.
+Commissioning of the pool is a simple process:
+  the L2 rollup selects a random set of nodes from existing nodes in other pools
+  and replaces them with unallocated nodes.
+When the number of nodes in a new pool reaches a level with enough security,
+  the pool is commissioned and can accept new files for storage.
 
 
 #### Decommissioning
 
 ![decommissioning](../assets/decommissioning.svg)
 
-Decommissioning is a more complex procedure. At first, the L2 rollup selects two pools with a low percentage of rented space. Then it moves all data from one pool to another. After that, the nodes of the empty pool are considered to be unallocated and the pool is removed from the list of active pools.
+Decommissioning is a more complex procedure.
+At first, the L2 rollup selects two pools with a low percentage of rented space (both should be $<50\%$ full).
+Then it moves all data from one pool to another.
+After that, the nodes of the empty pool are considered to be unallocated and the pool is removed from the list of active pools.
 
-> Obvious issue is how to force users make some pools empty. This is like a disk defragmentation problem, but our disk is very big and decentralized, that's why we need to address this problem by designing a special economic model. Each pool will have fee rate depending on the percentage of rented space. You can read more about it at [Economic Model](#economic-model) section. Also, the L2 rollup can provide some incentives for the users to move their data from one pool to another.
+> This solution works well if the data blocks are distributed amoung pools unequally,
+    i.e. as many pools as possible are fully filled.
+This means that fewer pools and fewer nodes are in use,
+  and the resources of those nodes are utlizied to the fullest.
+>
+> This is similar to disk defragmentation problem:
+    the placement of data on the disk impacts performance,
+    and we would like to distribute it in a way that is more efficient.
+The difference is that our disk is very big and decentralized,
+  and the user renting space is freely choosing the pool to put her data in
+  (using L2 consensus to assign pools for each file upload will not scale well).
+Therefore, we address this problem by designing a special economic model,
+  to incentivize the users to utilize the pools already in use to their fullest before touching fresh ones.
+We assign each pool a fee rate that depends on the percentage of currently rented space.
+[Economic Model](#economic-model) section describes it in more detail.
+
+When a pool gets decommissionined,
+  the nodes move the data to a new pool without any confirmation from the users owning that data.
+The whole procedure needs no interaction from the user, she can be offline the whole time.
+Later, when the user comes online and wants to retrive her data,
+  she can look at L2 records
+    (L2 has the records since it made the decision to decommission the pool),
+  figure out what pool currently stores her data
+  and retrieve it from there.
 
 ### Polynomial Representation of the Data
 
@@ -261,7 +316,7 @@ It can be noted that $F(x,y_0)$ represents the linear combination of the columns
 To distribute the data to $K_1$ nodes, we can evaluate the polynomial at $K_1$ $y$ points and 
 distribute the values to the nodes.
 
-Commitment to shard could be verified with the following polynomial equation:
+We can verify the following polynomial equation using polynomial commitment scheme:
 
 $$F(x,x^M)-F(x,y_0) = (x^M-y_0) \cdot Q(x),$$
 
@@ -272,19 +327,30 @@ where $Q(x)$ is a quotient polynomial.
 To prevent spam from malicious nodes with not enough space, we should implement an efficient mechanism, 
 allowing nodes to prove, that they have enough space to store the data.
 
-In the chapter [Space-Time Tradeoff](#space-time-tradeoff), we will provide a more exact description, 
-of how it could be implemented.
+We use the technique described in [Space-Time Tradeoff](#space-time-tradeoff) to achieve this.
 
 ### State of the Node and Data Availability Mining
 
-Each data sector of the node could be represented as a polynomial. The node can store all polynomial commitments inside the Merkle tree. Then proof of data availability could be computed as a set of random openings of the polynomial commitments at random points. Challenge values for the openings and commitment selection could be derived from the timestamps of the blocks of the L2 rollup. The proofs of data availability can be compressed using recursive zkSNARKs.
+Each data sector of the node could be represented as a polynomial.
+The node can store all polynomial commitments inside the Merkle tree.
+Then proof of data availability could be computed as a set of random openings of the polynomial commitments at random points.
+Challenge values for the openings and commitment selection could be derived from the timestamps of the blocks of the L2 rollup.
+The proofs of data availability can be compressed using recursive zkSNARKs.
 
 
 ## Cryptographic Analysis
 
 ### Security Model
 
-TODO
+In our security model we assume that at least 50% of the nodes on the network are honest,
+  and L1-2 consensus is secure, i.e. the L1 and L2 layers of our network are uncorrupted.
+The only thing that an adversary is allowed to do is spawn malicious nodes
+  (no more than 50% of the network).
+The malicious nodes are allowed not to follow the presecribed protocol,
+  but can deviate from it as chosen by the adversary.
+
+Honest nodes are assumed to not deviate from the protocol
+  unless that lets them earn more (of L1 or L2 tokens that users pay for renter space) than honest bevavior would.
 
 ### Soundness Analysis
 
@@ -332,7 +398,7 @@ from centralization.
 
 All these attacks could be prevented with the following approach:
 
-Each node generates a high entropy plot and makes a commitment of function $G$, which is very
+Each node generates a high entropy plot and makes a commitment to function $G$, which is very
 close to this plot. This fact could be verified with random openings of the polynomial:
 
 $$G(x_i) = \text{plot}(x_i)$$
@@ -355,20 +421,36 @@ to do it.
 
 ### Dynamic Nodes Mixing against Malicious Actors
 
-If sharding is static, we need just initially select the nodes for each pool. However the uptime 
-of the nodes is not infinite, and if only malicious nodes are left in the pool, the data will be 
-lost. To prevent this problem, we need to mix the nodes in the pools periodically. The mixing 
-should be done in a way, that the malicious nodes cannot predict the new shard for the data.
-
+If sharding was static over time,
+  we would need just initially select the nodes for each pool.
+However the uptime of the nodes is not infinite,
+  and as honest nodes go offline (for natural reasons),
+  the adversary could use this to concentrate its malicious notes in a given pool.
+If only malicious nodes in a given pool reach critical amount,
+  they can cause DoS and lose the data.
+To prevent this problem,
+  we need to mix the nodes in the pools periodically.
+The mixing should be done in a way,
+  that the malicious nodes cannot predict the new shard for the data.
 
 ![mixings](../assets/mixings.svg)
 
 Let's consider $n$ as the number of nodes in a pool.
 
-For the best strategy for the malicious actor: keep the malicious nodes in the pool and wait when 
-the honest node to go offline, we can describe the evolution of the pool as a Markov process. To 
-protect from this strategy, the network performs $m$ mixings. We can find the equilibrium distribution 
-for this process and find the probability that less than $k$ nodes in the pool are honest.
+In out security model, the best strategy for the adversary is this:
+
+  - keep the malicious nodes in the pool online,
+  - wait for some honest node of that pool to go offline.
+
+Each time an honest node leaves the pool,
+  the number of malicious nodes in the pool will go up by $1$ with probability $p$.
+But then we perform a mixing, and the number of malicious nodes changes as … (TODO: how does mixing happen concretely?)
+
+We can describe the evolution of the pool as a Markov process.
+To protect from this strategy,
+  the network performs $m$ mixings.
+We can find the equilibrium distribution for this process
+  and find the probability that less than $k$ nodes in the pool are honest.
 
 For example, if $p=1/2$, $k=64$, $n=512$, $m=3$, then soundness is $115$ bits of security.
 
