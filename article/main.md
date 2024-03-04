@@ -18,7 +18,7 @@ given file.  As long as at least half of the network behaves honestly, this tech
 a malicious adversary can not cause a DoS attack on the file by controlling critical number of its
 shards.
 
-We present the details of our solution, formally analyze the cryptographic security guarrantees it
+We present the details of our solution, analyze the cryptographic security guarrantees it
 provides and propose a set of economic incentives to motivate honest node behavior.
 
 ## Introduction
@@ -54,7 +54,6 @@ When this happens, the network redistributes the replicas to more nodes
 An adversary who controls large portion of the network
   could use this mechanism to try to collect all replicas of a given file.
 
-
    The network mitigates this by periodically randomly shuffling nodes between the pools of different files.
    Informally speaking, this ensures that the fraction of adversary's nodes in each pool stays close to the fraction of its nodes in the whole network.
 
@@ -84,7 +83,7 @@ This approach makes validiums obsolete. We can upgrade validiums to rollups keep
 
 On the rollup level, we can implement all remaining use cases, like databases, small files, and so on.
 
-Also, we can solve the problem of blockchain bloat. We can directly fulfill the rollup state at the checkpoint and then all history of the rollup before the checkpoint could be removed. 
+This can help solve the problem of blockchain bloat. We can directly fulfill the rollup state at the checkpoint and then all history of the rollup before the checkpoint could be removed.
 
 Also, very cheap storage may enable us to implement a lot of web2 solutions,
   like messengers, social networks, blogs, games, and so on on the blockchain with true decentralization.
@@ -121,7 +120,7 @@ One can recvover a secret shared using Shamir's scheme using
 Let's consider $p(x)$ is a polynomial of degree $N-1$ and the secret is the evaluation representation of 
 this polynomial over evaluation domain $\mathbf{D}=\{0,\ 1,\ 2,\ ...,\ N-1\}$:
 
-$\mathbf{S} = \{p(0),\ p(1),\ p(2),\ ...,\ p(N-1)\}$
+$$\mathbf{S} = \{p(0),\ p(1),\ p(2),\ ...,\ p(N-1)\}.$$
 
 We will compute the polynomial over the extended evaluation domain $0,\ 1,\ 2,\ ...,\ M-1$ and 
 distribute the values to M participants.
@@ -129,9 +128,11 @@ distribute the values to M participants.
 Let's represent the case when all participants excluding N are going offline. So, we get the following 
 values:
 
-$\mathbf{V} = \{p(k_0),\ p(k_1),\ p(k_2),\ ...,\ p(k_{N-1})\}$
+$$\mathbf{V} = \{p(k_0),\ p(k_1),\ p(k_2),\ ...,\ p(k_{N-1})\}$$
+
 over evaluation domain
-$\mathbf{K} = \{k_0,\ k_1,\ k_2,\ ...,\ k_{N-1}\}$.
+
+$$\mathbf{K} = \{k_0,\ k_1,\ k_2,\ ...,\ k_{N-1}\}.$$
 
 Let's define Lagrange polynomials over evaluation domain $\mathbf{K}$:
 
@@ -155,11 +156,31 @@ In terms of error-correcting codes, this corresponds to an erasure.
 
 ### zkSNARKs
 
-TODO
+[Zero-Knowledge Succinct Non-Interactive Argument of Knowledge](https://en.wikipedia.org/wiki/Non-interactive_zero-knowledge_proof)
+  is a cryptographic primitive that lets a Prover convince a Verifier that it knows a secret witness $y$
+  such that $P(x, y)$ for public polynomially-computable predicate $P$ and public instance value $x$.
+
+They are heavily used to provide privacy of the data a blockchain works with.
+In this architecture, the a smart-contract on blockchain only holds commitment to its state,
+  and clients initiate transactions asking to update that hash providing the zkSNARK proof of the transition being done correctly.
+This way, the state held by the smart-contract (or some parts of such state) can remain private,
+  while still ensuring that state transition happen according to some rules.
+
+Another use-case for zkSNARKs is CPU scaling of blockchain.
+zkSNARKs allow verifying the proof faster than the computation of predicate $P$ would take.
+This way, if verifying state transition requires too much resources,
+  we can offload that computation to an off-chain entity (TODO: rollup?)
+  and only verify its result on blockchain.
+
+We use zkSNARKs in this solution for both.
+In the following description, we often make the use of zkSNARKs implicit.
 
 ### Polynomial Commitment Schemes
 
-TODO
+Polynomial Commitment Schemes are [commitment schemes](https://en.wikipedia.org/wiki/Commitment_scheme)
+  where one can commit to a polynomial of a fixed degree,
+  and then reveal individual points of that polynomial
+  and prove that the degree of the polynomial committed to is limited.
 
 #### Selection of Polynomial Commitment Scheme
 
@@ -352,7 +373,7 @@ The malicious nodes are allowed not to follow the presecribed protocol,
 Honest nodes are assumed to not deviate from the protocol
   unless that lets them earn more (of L1 or L2 tokens that users pay for renter space) than honest bevavior would.
 
-### Soundness Analysis
+### Statistical Security Analysis
 
 Let's consider $p$ as part of honest nodes in the network, So, if a total number of nodes is $N$, 
 $pN$ are honest, and $(1-p)N$ of them are malicious. If shards are distributed by nodes by random, 
@@ -373,12 +394,12 @@ the binomial distribution ([source](https://online.stat.psu.edu/stat414/lesson/2
 
 $$\mathbf{P}(p,n,k) \approx \frac{1}{2} \left[1 + \mathrm{erf}\left(\frac{k-1/2-np}{\sqrt{2np(1-p)}}\right)\right].$$
 
-The soundness of could be defined as follows:
+The bits of statistical security of this solution could be defined as follows:
 
 $$\mathbf{S}(p,n,k) = -\log_2 \mathbf{P}(p,n,k).$$
 
-Then we can calculate the soundness for different values of $p$, $n$, and $k$. For example, 
-if $p=1/2$, $n=1024$, $k=256$,
+Then we can calculate the statistical security for different values of $p$, $n$, and $k$.
+For example, if $p=1/2$, $n=1024$, $k=256$,
 
 then $\mathbf{S}(1/2,1024,256) = 190$ bits of security.
 
@@ -437,14 +458,25 @@ The mixing should be done in a way,
 
 Let's consider $n$ as the number of nodes in a pool.
 
-In out security model, the best strategy for the adversary is this:
+Each time an honest node leaves the pool, the network performs the following:
+
+1. Select a random node (from unallocated or from another pool), move it to the current pool.
+If the selected node was previously in another pool, move a random unallocated node in place of it.
+
+2. Perform “mixing” $m$ times:
+  select a random node from the current pool
+  and swap it with a random node from outside of this pool
+  (from unallocated or from another pool).
+
+During step 1, the number of malicious nodes in the pool will go up by $1$ with probability $p$.
+But then, each mixing will probabilistically balance the number of malicious nodes inside the pool with that number outside.
+The current pool will also be impacted by steps 1-2 being triggered in the other pools when some node leaves that pool;
+  we assume that probability of a node leaving a pool is the same for all pools (since nodes are distributed randomly).
+
+In our security model, the best strategy for the adversary is this:
 
   - keep the malicious nodes in the pool online,
   - wait for some honest node of that pool to go offline.
-
-Each time an honest node leaves the pool,
-  the number of malicious nodes in the pool will go up by $1$ with probability $p$.
-But then we perform a mixing, and the number of malicious nodes changes as … (TODO: how does mixing happen concretely?)
 
 We can describe the evolution of the pool as a Markov process.
 To protect from this strategy,
@@ -452,7 +484,7 @@ To protect from this strategy,
 We can find the equilibrium distribution for this process
   and find the probability that less than $k$ nodes in the pool are honest.
 
-For example, if $p=1/2$, $k=64$, $n=512$, $m=3$, then soundness is $115$ bits of security.
+For example, if $p=1/2$, $k=64$, $n=512$, $m=3$, then this solution achieves $115$ bits of statistical security.
 
 ![soundness](../assets/soundness.svg)
 
@@ -467,24 +499,35 @@ Another source of rewards is the fee for space rent.
 
 The fee should depend on:
 
-1. percentage of rented space. The more space is rented, the higher the fee. The dependency should be hyperbolic, so the fee will be very high when the pool is almost full. Then if somebody wants to rent all free space, the fee will grow very fast.
+1. Percentage of rented space.
+The more space is rented, the higher the fee.
+The dependency should be hyperbolic,
+  so the fee will be very high when the pool is almost full.
+Then if somebody wants to rent all free space, the fee will grow very fast.
 
-$$\phi = O\left(\Psi^{-1}\right),$$
-where $\Psi$ is part of free space in the whole network, $\phi$ is fee.
+   $$\phi = O\left(\Psi^{-1}\right),$$
 
-2. percentage of rented space. If more space is rented, the multiplier is exponentially growing over time. If less space is rented, the multiplier is exponentially decreasing over time.
+   where $\Psi$ is part of free space in the whole network, $\phi$ is fee.
 
-$$\mathbf{d} \phi = \phi\cdot(\Psi - \beta)\cdot \gamma \mathbf{d}t$$
+2. Percentage of rented space.
+If more space is rented,
+  the multiplier is exponentially growing over time.
+If less space is rented,
+  the multiplier is exponentially decreasing over time.
 
-The solution of this equation is
+   $$ \mathbf{d} \phi = \phi\cdot(\Psi - \beta)\cdot \gamma \mathbf{d}t.$$
 
-$$\phi = O\left(\exp(\gamma\int\limits_0^t (\Psi(t)-\beta) \mathbf{d}t)\right),$$
+   The solution of this equation is
 
+   $$\phi = O\left(\exp(\gamma\int\limits_0^t (\Psi(t)-\beta) \mathbf{d}t)\right).$$
 
+3. Percentage of rented space of the pool.
+The more space is rented, the lower the fee.
+The dependency should be linear.
 
+   $$\phi = O\left(\alpha - \psi\right),$$
 
-3. Percentage of rented space of the pool. The more space is rented, the lower the fee. The dependency should be linear. $$\phi = O\left(\alpha - \psi\right),$$
-where $\psi$ is part of free space in the current pool.
+   where $\psi$ is part of free space in the current pool.
 
 
 The resulting formula takes the form:
@@ -493,12 +536,16 @@ $$\phi = K \cdot \frac{\alpha - \psi}{\Psi} \cdot \exp\left(\gamma \int\limits_0
 
 Also, to make the network more stable, we propose the following mechanism:
 
-1. Each node instantly receives only part of the reward. The rest of the reward is locked for some time. If the node goes offline, the locked reward is burned.
+1. Each node instantly receives only part of the reward.
+The rest of the reward is locked for some time.
+If the node goes offline, the locked reward is burned.
 
 2. Prolonging the rent of the existing space should be cheaper than renting a new space by some discount factor.
 
-
-During the setup of the network, a significant part of rewards should be generated by the mining. Then, when the network is stable, the fee for space rent should be the main source of rewards.
+During the setup of the network,
+  a significant part of rewards should be generated by the mining.
+Then, when the network is stable,
+  the fee for space rent should be the main source of rewards.
 
 ## Evaluation
 
@@ -511,7 +558,7 @@ $$\mathbf{P}(p,n) = (1-p)^n,$$
 where $p$ is the probability that a node is honest, otherwise it is malicious, and $n$ is 
 the number of replicas.
 
-The soundness of replication could be defined as follows:
+The statistical security of replication could be defined as follows:
 
 $$\mathbf{S}(p,n) = -\log_2 \mathbf{P}(p,n).$$
 
@@ -542,4 +589,4 @@ In conclusion, the Blockchain Sharded Storage solution represents a significant 
 
 ### Future Directions
 
-TODO: econominc modelling, more detailed architecture
+In the future, we plan to do a more throrugh economic modelling of this solution as well as do cryptographic security analysis in one of the established formal frameworks.
