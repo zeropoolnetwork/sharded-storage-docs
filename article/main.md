@@ -1,5 +1,7 @@
 # Blockchain Sharded Storage: Web2 Costs and Web3 Security with Shamir Secret Sharing
 
+*Thanks to [Ivan Oleynikov](https://github.com/gnull) for editing and feedback.*
+
 ## Abstract
 
 CPU scaling for blockchain is solved. However, storage scaling is still a problem. This document
@@ -169,8 +171,8 @@ This way, the state held by the smart-contract (or some parts of such state) can
 Another use-case for zkSNARKs is CPU scaling of blockchain.
 zkSNARKs allow verifying the proof faster than the computation of predicate $P$ would take.
 This way, if verifying state transition requires too much resources,
-  we can offload that computation to an off-chain entity (TODO: rollup?)
-  and only verify its result on blockchain.
+  we can use recursion
+  and only verify the final result on blockchain.
 
 We use zkSNARKs in this solution for both.
 In the following description, we often make the use of zkSNARKs implicit.
@@ -259,8 +261,9 @@ The L3 rollup is responsible for consistency between all nodes.
 Also, users rent space at the L3 rollup using their payment bridges.
 L3 rollup aggregates proof of the data availability using function interpolation at random points for data blocks.
 
-The L2 and L3 rollups run their own consensus protocols powered by the underlying L1 blockchain
-  (e.g. using [Proof of authority](https://en.wikipedia.org/wiki/Proof_of_authority)).
+The L3 rollups run their own consensus protocols
+  (e.g. using [Proof of authority](https://en.wikipedia.org/wiki/Proof_of_authority)),
+  and members of the consensus are the nodes of the corresponding pool.
 They can perform their own operations and maintain their own state synchronizing every step with L1 blockchain,
   and only referring to when they explicitly choose to (e.g. to save their state hash).
 
@@ -282,7 +285,7 @@ The L2 rollup is responsible for commissioning and decommissioning L3 pools
 
 #### Commissioning
 
-![commissioning](../assets/commissioning.svg)
+![Commissioning](../assets/commissioning.svg)
 
 Commissioning of the pool is a simple process:
   the L2 rollup selects a random set of nodes from existing nodes in other pools
@@ -293,7 +296,7 @@ When the number of nodes in a new pool reaches a level with enough security,
 
 #### Decommissioning
 
-![decommissioning](../assets/decommissioning.svg)
+![Decommissioning](../assets/decommissioning.svg)
 
 Decommissioning is a more complex procedure.
 At first, the L2 rollup selects two pools with a low percentage of rented space (both should be $<50\%$ full).
@@ -446,7 +449,7 @@ If sharding was static over time,
   we would need just initially select the nodes for each pool.
 However the uptime of the nodes is not infinite,
   and as honest nodes go offline (for natural reasons),
-  the adversary could use this to concentrate its malicious notes in a given pool.
+  the adversary could use this to concentrate its malicious nodes in a given pool.
 If only malicious nodes in a given pool reach critical amount,
   they can cause DoS and lose the data.
 To prevent this problem,
@@ -454,7 +457,7 @@ To prevent this problem,
 The mixing should be done in a way,
   that the malicious nodes cannot predict the new shard for the data.
 
-![mixings](../assets/mixings.svg)
+![Mixings](../assets/mixings.svg)
 
 Let's consider $n$ as the number of nodes in a pool.
 
@@ -484,9 +487,9 @@ To protect from this strategy,
 We can find the equilibrium distribution for this process
   and find the probability that less than $k$ nodes in the pool are honest.
 
-For example, if $p=1/2$, $k=64$, $n=512$, $m=3$, then this solution achieves $115$ bits of statistical security.
+![Soundness](../assets/soundness.svg)
 
-![soundness](../assets/soundness.svg)
+For example, if $p=1/2$, $k=64$, $n=512$, $m=3$, then this solution achieves $115$ bits of statistical security.
 
 
 ## Economic Model
@@ -573,6 +576,24 @@ From the modeling, we can observe:
 is growing
 3. The blowup factor depends on the sharding threshold $k$, the higher the threshold, 
 the lower the blowup factor
+
+| Blowup | $p$ | $k=128$ | $k=64$ | $k=32$ | $k=1$ |
+| --- | --- | --- | --- | --- | --- |
+| 4 | 0.25 | 0 | 0 | 0 | 1.3 |
+| 8 | 0.25 | 0.1 | 0.2 | 0.3 | 2.1 |
+| 16 | 0.25 | 15.6 | 9.2 | 5.8 | 3.1 |
+| 32 | 0.25 | 90.8 | 47.5 | 25.7 | 4.4 |
+| 64 | 0.25 | 274.1 | 139.6 | 72.2 | 6.5 |
+| 4 | 0.38 | 1.4 | 1.3 | 1.3 | 2.3 |
+| 8 | 0.38 | 59.6 | 31.8 | 17.8 | 3.8 |
+| 16 | 0.38 | 261.9 | 133.7 | 69.4 | 6.3 |
+| 32 | 0.38 | 731.5 | 369.1 | 187.6 | 10.8 |
+| 64 | 0.38 | 1717.1 | 862.3 | 434.6 | 19.1 |
+| 4 | 0.5 | 35.1 | 19.4 | 11.4 | 3.5 |
+| 8 | 0.5 | 224.7 | 115.2 | 60.2 | 6 |
+| 16 | 0.5 | 701.1 | 354 | 180.3 | 10.7 |
+| 32 | 0.5 | 1729.5 | 868.8 | 438.2 | 19.6 |
+| 64 | 0.5 | 3845 | 1926.9 | 967.7 | 36.9 |
 
 
 ## Conclusion
