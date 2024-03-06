@@ -8,7 +8,7 @@ CPU scaling for blockchain is solved. However, storage scaling is still a proble
 describes a horizontally scalable fault-tolerant storage solution for blockchain that can process
 large amounts of data (beyond petabytes) with Web2 storage overhead and Web3 security. With this
 solution, rollups no longer need to store their blocks on-chain. In other words, we can upgrade
-validiums to rollups.
+validiums to rollups and nest the rollups recursively into each other with close to zero cost of data storage.
 
 Our solution uses [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
 to split the payload into shards and distribute it among nodes for storage,
@@ -17,17 +17,16 @@ Transform](https://zcash.github.io/halo2/background/polynomials.html#fast-fourie
 Nodes are paid by the file owner for storing the shards, which is periodically verified using
 zkSNARK. We employ a special shuffling technique to decide which nodes will store the shards of a
 given file.  As long as at least half of the network behaves honestly, this technique ensures that
-a malicious adversary can not cause a DoS attack on the file by controlling critical number of its
+a malicious adversary can not cause a DoS attack on the file by controlling a critical number of its
 shards.
 
-We present the details of our solution, analyze the cryptographic security guarrantees it
-provides and propose a set of economic incentives to motivate honest node behavior.
+We present the details of our solution, analyze the cryptographic security guarantees it provides and propose a set of economic incentives to motivate honest node behavior.
 
 ## Introduction
 
 ### Problem Statement
 
-One of the solutions used for storage scaling on blockchain today is replication of data.
+One of the solutions used for storage scaling on blockchain today is a replication of data.
 It stores each chunk of payload on multiple nodes.
 Nodes produce zero-knowledge proofs of data availability.
 When the number of nodes storing the chunks is low,
@@ -53,27 +52,27 @@ computationally hard, making deduplication impractical.
 The nodes holding replicas of a file may go offline at any moment.
 When this happens, the network redistributes the replicas to more nodes
   to ensure the needed level of redundancy.
-An adversary who controls large portion of the network
+An adversary who controls a large portion of the network
   could use this mechanism to try to collect all replicas of a given file.
 
    The network mitigates this by periodically randomly shuffling nodes between the pools of different files.
-   Informally speaking, this ensures that the fraction of adversary's nodes in each pool stays close to the fraction of its nodes in the whole network.
+   Informally speaking, this ensures that the fraction of the adversary's nodes in each pool stays close to the fraction of its nodes in the whole network.
 
-In the following sections we propose our solution to this problem with better security and performance than replication.
+In the following sections, we propose our solution to this problem with better security and performance than replication.
 Additionally, our solution is natively zkSNARK-friendly,
-  as its polynomial computations can be effeciently done in a zkSNARK.
+  as its polynomial computations can be efficiently done in a zkSNARK.
 That means that we can include proofs of data availability in proofs of rollup state transitions with little overhead.
 It will allow us to upgrade validiums to rollups with close to zero cost of data storage.
 
 Our solution implements data redistribution similarly to the above to account for nodes going offline.
 We additionally periodically shuffle the nodes between the pools
   to make sure that malicious nodes are distributed evenly between the pools,
-  and that adversary can not monotonously increase the presence of malicious nodes in a given pool
+  and that the adversary can not monotonously increase the presence of malicious nodes in a given pool
     due to honest nodes of that pool going offline over time.
 
 ### Use Cases
 
-Our proposed solution can be seen a very big decentralized HDD with large (megabytes) sectors.
+Our proposed solution can be seen as a very big decentralized HDD with large (megabytes) sectors.
 As bare metal HDDs,
   it provides CRUD operations on sectors,
   which is directly inefficient for many cases like small files or databases.
@@ -115,7 +114,7 @@ We will use this property to build a fault-tolerant storage of publicly availabl
 
 ### Polynomial Computation for Data Recovery
 
-One can recvover a secret shared using Shamir's scheme using
+One can recover a secret shared using Shamir's scheme using
   [Lagrange interpolation](https://en.wikipedia.org/wiki/Lagrange_polynomial),
   we briefly outline the mechanism below.
 
@@ -162,17 +161,16 @@ In terms of error-correcting codes, this corresponds to an erasure.
   is a cryptographic primitive that lets a Prover convince a Verifier that it knows a secret witness $y$
   such that $P(x, y)$ for public polynomially-computable predicate $P$ and public instance value $x$.
 
-They are heavily used to provide privacy of the data a blockchain works with.
-In this architecture, the a smart-contract on blockchain only holds commitment to its state,
+They are heavily used to provide privacy for the data a blockchain works with.
+In this architecture, a smart contract on blockchain only holds a commitment to its state,
   and clients initiate transactions asking to update that hash providing the zkSNARK proof of the transition being done correctly.
-This way, the state held by the smart-contract (or some parts of such state) can remain private,
-  while still ensuring that state transition happen according to some rules.
+This way, the state held by the smart contract (or some parts of such state) can remain private,
+  while still ensuring that state transition happens according to some rules.
 
 Another use-case for zkSNARKs is CPU scaling of blockchain.
 zkSNARKs allow verifying the proof faster than the computation of predicate $P$ would take.
-This way, if verifying state transition requires too much resources,
-  we can use recursion
-  and only verify the final result on blockchain.
+This way, if verifying state transition requires too many resources,
+we can use recursion and only verify the final result on the blockchain.
 
 We use zkSNARKs in this solution for both.
 In the following description, we often make the use of zkSNARKs implicit.
@@ -231,9 +229,9 @@ Proofs with bigger $k$ could be used inside zkSNARKs.
 
 ## Architecture
 
-In this section, we first give a high-level overview of proposed L1-L3 architecture.
-Then describe commissioning and decommissioning of L3 pools.
-And finally we discuss plotting,
+In this section, we first give a high-level overview of the proposed L1-L3 architecture.
+Then describe the commissioning and decommissioning of L3 pools.
+Finally, we discuss plotting,
   the mechanism nodes use to prove that they have enough space to store the shards.
 
 ### Overview
@@ -244,7 +242,7 @@ Consider a 4-level model of the sharded storage network illustrated below.
 
 At the first level, we have the L1 blockchain.
 The L2 rollup publishes state-to-state transition proofs
-  and the root hash of the state on L1 blockchain.
+  and the root hash of the state on the L1 blockchain.
 
 > We do not need to publish the data of blocks. We are describing sharded storage, so, all data will 
 be safely stored at the nodes and the zk proof contains the proof of data availability.
@@ -261,10 +259,10 @@ The L3 rollup is responsible for consistency between all nodes.
 Also, users rent space at the L3 rollup using their payment bridges.
 L3 rollup aggregates proof of the data availability using function interpolation at random points for data blocks.
 
-The L3 rollups run their own consensus protocols
+The L3 rollups run their consensus protocols
   (e.g. using [Proof of authority](https://en.wikipedia.org/wiki/Proof_of_authority)),
   and members of the consensus are the nodes of the corresponding pool.
-They can perform their own operations and maintain their own state synchronizing every step with L1 blockchain,
+They can perform their operations and maintain their state by synchronizing every step with the L1 blockchain,
   and only referring to when they explicitly choose to (e.g. to save their state hash).
 
 Users and smart contracts can rent space for the tokens with the L3 rollup.
@@ -281,7 +279,7 @@ making it more suitable for our case and ZK-friendly.
 
 Nodes can join and leave the pool at any time.
 The L2 rollup is responsible for commissioning and decommissioning L3 pools
-  depending on the number of unallocated nodes and the amount of data on in the pools.
+  depending on the number of unallocated nodes and the amount of data in the pools.
 
 #### Commissioning
 
@@ -319,12 +317,11 @@ Therefore, we address this problem by designing a special economic model,
 We assign each pool a fee rate that depends on the percentage of currently rented space.
 [Economic Model](#economic-model) section describes it in more detail.
 
-When a pool gets decommissionined,
-  the nodes move the data to a new pool without any confirmation from the users owning that data.
+When a pool gets decommissioned, the nodes move the data to a new pool without any confirmation from the users owning that data.
 The whole procedure needs no interaction from the user, she can be offline the whole time.
-Later, when the user comes online and wants to retrive her data,
+Later, when the user comes online and wants to retrieve her data,
   she can look at L2 records
-    (L2 has the records since it made the decision to decommission the pool),
+    (L2 has the records since it decided to decommission the pool),
   figure out what pool currently stores her data
   and retrieve it from there.
 
@@ -340,7 +337,7 @@ It can be noted that $F(x,y_0)$ represents the linear combination of the columns
 To distribute the data to $K_1$ nodes, we can evaluate the polynomial at $K_1$ $y$ points and 
 distribute the values to the nodes.
 
-We can verify the following polynomial equation using polynomial commitment scheme:
+We can verify the following polynomial equation using the polynomial commitment scheme:
 
 $$F(x,x^M)-F(x,y_0) = (x^M-y_0) \cdot Q(x),$$
 
@@ -366,15 +363,14 @@ The proofs of data availability can be compressed using recursive zkSNARKs.
 
 ### Security Model
 
-In our security model we assume that at least 50% of the nodes on the network are honest,
-  and L1-2 consensus is secure, i.e. the L1 and L2 layers of our network are uncorrupted.
+In our security model, we assume that at least 50% of the nodes on the network are honest, and the L1-2 consensus is secure, 
+i.e. the L1 and L2 layers of our network are uncorrupted.
 The only thing that an adversary is allowed to do is spawn malicious nodes
   (no more than 50% of the network).
-The malicious nodes are allowed not to follow the presecribed protocol,
-  but can deviate from it as chosen by the adversary.
+The malicious nodes are allowed not to follow the prescribed protocol but can deviate from it as chosen by the adversary.
 
 Honest nodes are assumed to not deviate from the protocol
-  unless that lets them earn more (of L1 or L2 tokens that users pay for renter space) than honest bevavior would.
+  unless that lets them earn more (of L1 or L2 tokens that users pay for renter space) than honest behavior would.
 
 ### Statistical Security Analysis
 
@@ -422,14 +418,14 @@ from centralization.
 
 All these attacks could be prevented with the following approach:
 
-Each node generates a high entropy plot and makes a commitment to function $G$, which is very
+Each node generates a high entropy plot and commits to function $G$, which is very
 close to this plot. This fact could be verified with random openings of the polynomial:
 
 $$G(x_i) = \text{plot}(x_i)$$
 
 If we perform enough random openings, we can be sure that the entropy of $G$ is high enough.
 
-The seed of the plot should be derived from the shard commitment. Then the node can store 
+The seed of the plot should be derived from the commitment of the shard. Then the node can store 
 the sum of the shard and plot and provide proof of data availability for this sum to receive
 the reward.
 
@@ -450,7 +446,7 @@ If sharding was static over time,
 However the uptime of the nodes is not infinite,
   and as honest nodes go offline (for natural reasons),
   the adversary could use this to concentrate its malicious nodes in a given pool.
-If only malicious nodes in a given pool reach critical amount,
+If only malicious nodes in a given pool reach a critical amount,
   they can cause DoS and lose the data.
 To prevent this problem,
   we need to mix the nodes in the pools periodically.
@@ -463,18 +459,18 @@ Let's consider $n$ as the number of nodes in a pool.
 
 Each time an honest node leaves the pool, the network performs the following:
 
-1. Select a random node (from unallocated or from another pool), move it to the current pool.
+1. Select a random node (from an unallocated or another pool), and move it to the current pool.
 If the selected node was previously in another pool, move a random unallocated node in place of it.
 
 2. Perform “mixing” $m$ times:
   select a random node from the current pool
   and swap it with a random node from outside of this pool
-  (from unallocated or from another pool).
+  (from unallocated or another pool).
 
 During step 1, the number of malicious nodes in the pool will go up by $1$ with probability $p$.
-But then, each mixing will probabilistically balance the number of malicious nodes inside the pool with that number outside.
+But then, each mixing will probabilistically balance the number of malicious nodes inside the pool with the number outside.
 The current pool will also be impacted by steps 1-2 being triggered in the other pools when some node leaves that pool;
-  we assume that probability of a node leaving a pool is the same for all pools (since nodes are distributed randomly).
+  we assume that the node leaving the pool is honest (and the attacker is waiting til a lot of honest nodes leave the pool).
 
 In our security model, the best strategy for the adversary is this:
 
@@ -494,7 +490,7 @@ For example, if $p=1/2$, $k=64$, $n=512$, $m=3$, then this solution achieves $11
 
 ## Economic Model
 
-All nodes receive the same reward for storing the data or maintaining the empty space, which is the same complexity due to [complexity leveling](#complexity-leveling-and-protection-against-centralized-supernodes).
+All nodes receive the same reward for storing the data or maintaining the free space, which is the same complexity due to [complexity leveling](#complexity-leveling-and-protection-against-centralized-supernodes).
 
 The first source of rewards is token emission with a Bitcoin-like formula. Rewards are distributed to the nodes using [proof of space-time mining](#space-time-tradeoff-and-plotting), like in the Chia Network.
 
@@ -510,7 +506,7 @@ Then if somebody wants to rent all free space, the fee will grow very fast.
 
    $$\phi = O\left(\Psi^{-1}\right),$$
 
-   where $\Psi$ is part of free space in the whole network, $\phi$ is fee.
+   where $\Psi$ is part of free space in the whole network, $\phi$ is a fee.
 
 2. Percentage of rented space.
 If more space is rented,
@@ -530,7 +526,7 @@ The dependency should be linear.
 
    $$\phi = O\left(\alpha - \psi\right),$$
 
-   where $\psi$ is part of free space in the current pool.
+   where $\psi$ is part of the free space in the current pool.
 
 
 The resulting formula takes the form:
@@ -554,28 +550,7 @@ Then, when the network is stable,
 
 ### Comparison with Replication
 
-For replication, the probability of data loss could be computed with the following formula:
-
-$$\mathbf{P}(p,n) = (1-p)^n,$$
-
-where $p$ is the probability that a node is honest, otherwise it is malicious, and $n$ is 
-the number of replicas.
-
-The statistical security of replication could be defined as follows:
-
-$$\mathbf{S}(p,n) = -\log_2 \mathbf{P}(p,n).$$
-
-To compare sharding using Shamir's Secret Sharing and replication, we will compare 
-the blowup factor for 64 and 128 bits of security in case the 1/4, 1/2, and 3/4 nodes of 
-the network are honest. 
-
-From the modeling, we can observe:
-
-1. The blowup factor for replication is much higher than for sharding
-2. The blowup factor for sharding is growing slower than for replication when security 
-is growing
-3. The blowup factor depends on the sharding threshold $k$, the higher the threshold, 
-the lower the blowup factor
+Replication is a partial case of sharding when threshold $k=1$. We compute soundness for replication and sharding with different blowup factors and different levels of security and compare the results.
 
 | Blowup | $p$ | $k=128$ | $k=64$ | $k=32$ | $k=1$ |
 | --- | --- | --- | --- | --- | --- |
@@ -596,6 +571,16 @@ the lower the blowup factor
 | 64 | 0.5 | 3845 | 1926.9 | 967.7 | 36.9 |
 
 
+From the modeling, we can observe:
+
+1. The blowup factor for replication is much higher than for sharding
+2. The blowup factor for sharding is growing slower than for replication when security 
+is growing
+3. The blowup factor depends on the sharding threshold $k$, the higher the threshold, 
+the lower the blowup factor
+
+
+
 ## Conclusion
 
 This article has presented a novel sharded storage solution leveraging blockchain technology to tackle the significant challenge of scaling storage for vast data volumes, reaching beyond petabytes. By integrating Shamir's Secret Sharing and Fast Fourier Transform, we have developed a framework that not only surpasses the limitations of current replication-based methods but also seamlessly integrates with zkSNARK-friendly environments. This enables the secure and efficient storage of data with the cost-effectiveness of Web2 solutions while maintaining the robust security features characteristic of Web3 applications.
@@ -610,4 +595,4 @@ In conclusion, the Blockchain Sharded Storage solution represents a significant 
 
 ### Future Directions
 
-In the future, we plan to do a more throrugh economic modelling of this solution as well as do cryptographic security analysis in one of the established formal frameworks.
+In the future, we plan to do a more thorough economic modeling of this solution as well as do cryptographic security analysis in one of the established formal frameworks.
