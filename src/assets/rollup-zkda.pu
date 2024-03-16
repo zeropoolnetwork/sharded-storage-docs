@@ -29,7 +29,7 @@ rectangle L2 {
     rectangle "DA Contract" as DAContract
 }
 
-storage "Data Availability Network" as DA {
+storage "Data Storage Network" as DA {
     port " " as DAp
     database node1
     database node2
