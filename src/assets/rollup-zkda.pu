@@ -1,0 +1,90 @@
+@startuml
+
+' diagram for L2 rollum on Ethereum
+
+
+
+
+rectangle L1 {
+    rectangle "Rollup Contract" as rollup_contract
+
+}
+
+
+rectangle Prover {
+
+    card state1
+    interface " " as i1
+    card state2
+    interface " " as i2
+    card state3
+
+
+    
+}
+
+rectangle L2 {
+    collections block1
+    collections block2
+    rectangle "DA Contract" as DAContract
+}
+
+storage "Data Availability Network" as DA {
+    port " " as DAp
+    database node1
+    database node2
+    database node3
+    database node4
+}
+
+
+
+file "<b>TX</b>\n1-to-2 proof \nblock1 availability proof" as proof1
+file "<b>TX</b>\n2-to-3 proof \nblock2 availability proof" as proof2
+
+proof1 -r[hidden]->proof2
+
+state1 -right- i1
+i1 -right-> state2 
+state2 -right- i2
+i2 -right-> state3
+
+' block1 -up- i1
+' block2 -up- i2
+
+
+i1 -up- proof1
+i2 -up- proof2
+
+
+proof1 -up-> rollup_contract
+proof2 -up-> rollup_contract
+
+
+DAContract -up-> i1
+DAContract -up-> i2
+
+block1 -right[hidden]-> DAContract
+DAContract -right[hidden]-> block2
+
+
+block1 -up-> i1
+block2 -up-> i2
+
+
+node1 -right[hidden]- node2
+node2 -right[hidden]- node3
+node3 -right[hidden]- node4
+
+node1 -up[hidden]- DAp
+node2 -up[hidden]- DAp
+node3 -up[hidden]- DAp
+node4 -up[hidden]- DAp
+
+
+
+block1 --> DAp
+DAContract <-> DAp
+block2 --> DAp
+
+@enduml

@@ -167,3 +167,5 @@ cython_debug/
 *.jl.mem
 /docs/build/
 Manifest.toml
+*-not-publish.md
+*.pdf
