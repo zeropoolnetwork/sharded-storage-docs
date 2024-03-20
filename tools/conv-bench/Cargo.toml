@@ -1,0 +1,10 @@
+[package]
+name = "conv-bench"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+p3-goldilocks = { git = "https://github.com/zeropoolnetwork/Plonky3.git" }
+rayon = "1.5.1"
+rand = "0.8.5"
+
