@@ -108,7 +108,7 @@ By dividing these values by the TDP, we can roughly estimate $B$ to be in the ra
 
 This means that $n$ should be greater than $1\text{e}5$ to $1\text{e}7$ to make the shrink attack inefficient, which may not be practical in real-world scenarios.
 
-When $qn \lesssim 1$, $p$ can take any value. For example, with a storage size of 1TB, value size of 1MB, $n=1\text{e}4$, and $B=1\text{e-}5$, we get $p=1\text{e-}4$, which means that 100 MB of data could be forgotten while still providing economic benefits for the miner.
+When $qn \lesssim 1$, $p$ can take any value. For example, with a storage size of 1TB, value size of 1MB, $n=1\text{e}4$, and $B=1\text{e-}5$, we get $q=1\text{e-}4$, which means that 100 MB of data could be forgotten while still providing economic benefits for the miner.
 
 
 ## Moore attack
