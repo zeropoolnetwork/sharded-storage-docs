@@ -27,9 +27,13 @@ Throughout the following sections, we will examine these attack vectors in detai
 
 ## Shrink attack
 
-### Unlimited mining throughput
+In the following sections, we consider three different attacks. The first attack assumes that the mining throughput is not limited and shows how in this case the adversary can gain advantage over honest miners by using a different hardware configuration. In the follwing two attacks, we assume that the mining throughput was limited to mitigate the first attack, but we show that new issues arise: adversary can be economically incentivised to drop some part of the stored file, and perform Moore attack using more efficient hardware than that of honest miners.
 
-In this scenario, we consider the case where an attacker reduces the size of their memory module to gain an economic advantage. We make a pessimistic assumption that if the memory size is reduced by half, the maintenance cost (energy consumption) and throughput will remain the same, while the cost will be reduced by half. In reality, the energy consumption would likely be lower, but this assumption allows us to perform a worst-case analysis.
+In our costs analyses we make a few reasonable assumptions about the relationship between the costs and make conservative estimates of adversary advantage.
+
+### Unlimited throughput: achieving advantage over honest miners
+
+In this scenario, we consider the case where an attacker reduces the size of their memory module to gain an economic advantage. We make a pessimistic assumption that if the memory size is reduced by half, the maintenance cost (energy consumption) and throughput will remain the same, while the cost will be reduced by half. In reality, the energy consumption would likely be lower, but this assumption can only make our analysis more conservative.
 
 To compare the cost efficiency of the attacker and the reference miner, we normalize the values by the cost and present them in the following table:
 
@@ -38,11 +42,11 @@ To compare the cost efficiency of the attacker and the reference miner, we norma
 | reference | 1 | $A$ | 1 |
 | attacker | 1 | $\chi A$ | $\chi$ |
 
-- The reference miner's cost is set to 1 as a baseline for comparison.
-- $A \sim 1$ represents the maintenance cost (energy consumption) for the reference miner, which is assumed to be close to 1 for simplicity.
-- The reference miner's throughput is also set to 1 for easy comparison.
-- The attacker's cost is set to 1 because we are normalizing the values by the cost.
-- The attacker's maintenance cost is $\chi A$, where $\chi$ represents the throughput advantage of the attacker. This is because the attacker's memory size is smaller, but the energy consumption per unit of memory remains the same.
+- The reference miner's cost of purchasing one unit of hardware is set to 1 as a baseline; this is without loss of generality as we normalize other values with respect to this, eliminating a free variable.
+- $A \sim 1$ represents the maintenance cost (energy consumption) per time unit for the reference miner, which is assumed to be close to 1 for simplicity.
+- The reference miner's throughput is also normalized to 1.
+- The attacker's cost is set to 1, assuming that one unit of attacker's hardware has the same cost as that of a reference miner. This is a conservative estimate, since one unit of attacker's hardware is assumed to be less efficient than that of a reference miner.
+- The attacker's maintenance cost is $\chi A$, where $\chi > 1$ represents the throughput advantage of the attacker. This is because the attacker's memory size is smaller, but the energy consumption per unit of memory remains the same.
 - The attacker's throughput is $\chi$, reflecting their advantage in terms of throughput per unit cost.
 
 To compare the total cost efficiency, we calculate the throughput per unit of total cost (cost + maintenance) for both the reference miner and the attacker:
@@ -58,7 +62,7 @@ This inequality demonstrates that the attacker has a better total cost efficienc
 
 Therefore, the original PoRA is not resistant to shrink attacks under unlimited mining throughput conditions. The only way to protect against this vulnerability is to limit the mining rewards, which would discourage attackers from exploiting this weakness.
 
-### Limited mining throughput
+### Limited throughput: not storing part of the file
 
 In this scenario, we consider the case where the mining throughput is limited to an optimal value of 1, and we analyze the cost efficiency for an attacker who uses only a fraction $p$ of their memory.
 
@@ -111,7 +115,7 @@ This means that $n$ should be greater than $1\text{e}5$ to $1\text{e}7$ to make 
 When $qn \lesssim 1$, $p$ can take any value. For example, with a storage size of 1TB, value size of 1MB, $n=1\text{e}4$, and $B=1\text{e-}5$, we get $q=1\text{e-}4$, which means that 100 MB of data could be forgotten while still providing economic benefits for the miner.
 
 
-## Moore attack
+## Limited throughput: Moore attack
 
 When considering the Moore attack, it's important to note that miners will align their throughput to the limit imposed by the system. Let's analyze the cost efficiency of the reference miner and the attacker in this scenario.
 
