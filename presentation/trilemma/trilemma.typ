@@ -217,14 +217,19 @@ Yes
 == Thank you for your attention!
 
 
-#grid(columns: 2, gutter:20pt,
+#grid(columns: 3, gutter:18pt,
 [
-#image("../../assets/article-sharded-storage-1.svg", width: 200pt)
+#image("../../assets/article-sharded-storage-1.svg", width: 180pt)
 
 #link("https://zeropool.network/research/blockchain-sharded-storage-web2-costs-and-web3-security-with-shamir-secret-sharing")[Blockchain Sharded Storage: Web2 Costs and Web3 Security with Shamir Secret Sharing]
 ], [
-#image("../../assets/article-sharded-storage-2.svg", width: 200pt)
+#image("../../assets/article-sharded-storage-2.svg", width: 180pt)
 
 #link("https://zeropool.network/research/minimal-fully-recursive-zkda-rollup-with-sharded-storage")[Minimal fully recursive zkDA rollup with sharded storage]
+], [
+
+#image("../../assets/article-sharded-storage-3.svg", width: 180pt)
+
+#link("https://storage.zeropool.network/")[storage.zeropool.network Toy model of data-centric rollup, storing its blocks inside itself]
 ], [
 ])
