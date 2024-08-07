@@ -1,0 +1,28 @@
+@startuml
+!define RECTANGLE class
+
+skinparam backgroundColor #fefefe
+skinparam defaultTextAlignment center
+
+archimate #Technology "Client" as Client <<technology-device>>
+
+rectangle Node as Node1
+rectangle Node as Node2
+rectangle Node as Node3
+rectangle "..." as Node4
+
+cloud Network as Nodes1
+cloud Network as Nodes2
+cloud Network as Nodes3
+
+Client -down-> Node1
+Node1 -down-> Node2
+Node2 -down-> Node3
+Node3 -down-> Node4
+
+Node1 -right-> Nodes1
+Node2 -right-> Nodes2
+Node3 -right-> Nodes3
+
+
+@enduml

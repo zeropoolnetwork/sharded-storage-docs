@@ -1,4 +1,4 @@
-# Efficient Data Distribution with Reed-Solomon Codes for Blockchain Storage
+# Efficient Data Distribution with Reed-Solomon Codes for Sharded Storage
 
 ## Introduction
 
@@ -9,6 +9,15 @@ A naive approach would be to simply blow up the data from N to bN, where b is th
 It's crucial to note that we don't need to apply RS codes to all data together. This is because a node can only go offline as a whole - there can't be a situation where two nodes lose half of their data each, requiring RS codes to recover the data. A node either loses all its data or provides it entirely.
 
 While our method doesn't significantly improve the speed of calculating polynomial commitments (which remains O(N log N) for FRI), it greatly optimizes the data encoding-decoding procedure.
+
+### Naive approach
+
+![](../assets/rs_encoding_complexity_1.svg)
+
+### Our approach
+
+![](../assets/rs_encoding_complexity_2.svg)
+
 
 ## Notation and Definitions
 
@@ -99,7 +108,86 @@ We make the substitution $u=x^{m/2}$ in $f(x,y,u)$. This substitution does not r
 
 After the substitution, we get the following polynomial equation to check that the shard is a valid part of the original data:
 
-$$f(x,y,x^{m/2}) - r(x,y) = (x^{m/2}-u_0)q(x,y,x^{m/2})$$
+$$f(x,y,x^{m/2}) - f(x,y,u_0) = (x^{m/2}-u_0)q(x,y,x^{m/2})$$
+
+## Applications
+
+### Recovering the source data
+
+Any $k$ shards are enough to recover the original data. 
+
+$$f(x,y,u) = \sum\limits_{j} c_{ij} L_i(x,y) \mu(u),$$
+    
+where $\{\mu_i(u)\}$ is a Lagrange polynomial basis on the evaluation domain $H=\{u_i\}$, and $u_i$ are fixed values for each shard.
+
+$$ \mu_i(u) = d_i Z_{H}(u)/(u-u_i),$$
+where $Z_{H}(u)$ is a polynomial that is zero at all points of $H$, $d_i$ is a normalization factor, so
+
+$$ \mu_i(u) = \begin{cases}
+1, & u = u_i \\
+0 & u \neq u_i
+\end{cases}
+$$
+
+The source values could be computed as 
+$$a_{ij} = f(g^i.x, g^i.y, g^j.x)$$
+
+### Polynomial storing
+In some cases, we want to store something directly related to the polynomial commitment of $f$ instead of $a_{ij}$. This is important for zk applications, like rollups.
+
+Due to the inner structure of coefficient representation, we can represent $g(x,y)$ as $f(x,y,x^{m/2})$. That means that we can store rollup block data as a set of shards, keeping the source polynomial structure, keeping the source commitment. Then $a_{ij}$ will be some kind of intermediate representation of the committed data.
+
+
+## Algorithm description
+
+
+```python
+
+def get_shards_and_commitments(data: List[M31], m:int, n:int, k:int, cd:Domain, rd:Domain, xrd:Domain)
+    # data is a list of N elements
+    # m is the number of rows in the table
+    # n is the number of nodes
+    # k is the number of nodes required to recover the original data
+    # cd is the evaluation domain for the columns
+    # rd is the evaluation domain for the rows
+    # xrd is evaluation domain for the shards (blown up rows)
+    # Returns polynomial commitments and prover data for all the data and shards
+    
+    # create a table of size m x k, fulfilled row by row
+    table = create_table(data, m, k)
+    
+    # perform cfft on each row of the table
+    for row in table:
+        row[:] = cfft(row, rd)
+    
+    # create shards
+    shards = [icfft(fit_to_domain_with_zeros(row, rd, xrd), xrd) for row in table]
+    
+    # convert to col-ordered table
+    shards = to_col_ordered(shards)
+
+    # convert table to col_ordered
+    table = to_col_ordered(table)
+
+    # compute monomial representation of $f(x,y,x^{m/2})$
+    f = concat([cfft(col, cd) for col in table])
+
+    return pcs_monomial_repr(f), [pcs(shard) for shard in shards]
+
+```
+
+## Distributing the data over a cluster of nodes
+
+In practice, the client should deliver the data to $n$ nodes, and the total amount of data is $bN$. However, for big files, it could be inefficient due to the client's limited bandwidth. 
+
+Instead of this client-centralized approach, $b$ nodes could deliver $N \cdot (1-1/k)$ total data to $k-1$ nodes. There is no bottleneck at the client side (the client sends just $N$ data to one node), but total network data bandwidth is $b N \cdot (2-1/k) \approx 2bN$.
+
+![](../assets/sstorage_data_flow.svg)
+
+There is no valuable computational overhead to compute the shards vectors because with fft or cfft each node can perform a unique coset shift instead of blowup (and the sum of all shifted evaluation domains is the evaluation domain for the blowup).
+
+![](../assets/blowup_and_coset_shift.svg)
+
 
 ## Conclusion
 
@@ -109,6 +197,4 @@ While the complexity of polynomial commitment calculations remains O(N log N) fo
 
 ## References
 
-[HLP24] [Add full reference for the CFFT method in M31 field]
-
-[Add other relevant references]
+[HLP24](https://eprint.iacr.org/2024/278)

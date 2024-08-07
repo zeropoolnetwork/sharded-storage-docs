@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240">
+  <!-- Background -->
+  <rect x="0" y="0" width="600" height="240" fill="#fefefe"/>
+  
+  <!-- Original table -->
+  <rect x="10" y="60" width="150" height="90" fill="none" stroke="black" />
+  <text x="85" y="40" text-anchor="middle" dominant-baseline="middle" font-size="14">N = mk</text>
+  
+  <!-- Divide into colored squares -->
+  <rect x="10" y="60" width="30" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="40" y="60" width="30" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="70" y="60" width="30" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="100" y="60" width="30" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="130" y="60" width="30" height="30" fill="#FFB3BA" stroke="black" />
+  
+  <rect x="10" y="90" width="30" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="40" y="90" width="30" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="70" y="90" width="30" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="100" y="90" width="30" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="130" y="90" width="30" height="30" fill="#BAFFC9" stroke="black" />
+  
+  <rect x="10" y="120" width="30" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="40" y="120" width="30" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="70" y="120" width="30" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="100" y="120" width="30" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="130" y="120" width="30" height="30" fill="#BAE1FF" stroke="black" />
+  
+  <!-- Process arrow -->
+  <path d="M 170 105 L 230 105 M 225 100 L 230 105 L 225 110" fill="none" stroke="black" />
+  <text x="200" y="90" text-anchor="middle" dominant-baseline="middle" font-size="14">blowup</text>
+  
+  <!-- Resulting table -->
+  <rect x="240" y="60" width="350" height="90" fill="none" stroke="black" />
+  <text x="415" y="40" text-anchor="middle" dominant-baseline="middle" font-size="14">bN = bmk</text>
+  
+  <!-- Divide into colored squares -->
+  <rect x="240" y="60" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="275" y="60" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="310" y="60" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="345" y="60" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="380" y="60" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="415" y="60" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="450" y="60" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="485" y="60" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="520" y="60" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="555" y="60" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  
+  <rect x="240" y="90" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="275" y="90" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="310" y="90" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="345" y="90" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="380" y="90" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="415" y="90" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="450" y="90" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="485" y="90" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="520" y="90" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="555" y="90" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  
+  <rect x="240" y="120" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="275" y="120" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="310" y="120" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="345" y="120" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="380" y="120" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="415" y="120" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="450" y="120" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="485" y="120" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="520" y="120" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="555" y="120" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  
+  <!-- Complexity -->
+  <text x="10" y="200" text-anchor="start" dominant-baseline="middle" font-size="14">Complexity: O(m bk log bk) = O(bN log (bN/m))</text>
+</svg>

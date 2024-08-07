@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 150">
+  <!-- Background -->
+  <rect x="0" y="0" width="600" height="150" fill="#fefefe"/>
+  
+  <!-- Original vector -->
+  <rect x="10" y="60" width="150" height="30" fill="none" stroke="black" />
+  <text x="85" y="40" text-anchor="middle" dominant-baseline="middle" font-size="14">N</text>
+  
+  <!-- Divide into colored squares -->
+  <rect x="10" y="60" width="30" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="40" y="60" width="30" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="70" y="60" width="30" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="100" y="60" width="30" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="130" y="60" width="30" height="30" fill="#FFB3BA" stroke="black" />
+  
+  <!-- Process arrow -->
+  <path d="M 170 75 L 230 75 M 225 70 L 230 75 L 225 80" fill="none" stroke="black" />
+  <text x="200" y="60" text-anchor="middle" dominant-baseline="middle" font-size="14">blowup</text>
+  
+  <!-- Resulting table -->
+  <rect x="240" y="60" width="350" height="30" fill="none" stroke="black" />
+  <text x="415" y="40" text-anchor="middle" dominant-baseline="middle" font-size="14">bN</text>
+  
+  <!-- Divide into colored squares -->
+  <rect x="240" y="60" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="275" y="60" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="310" y="60" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="345" y="60" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="380" y="60" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="415" y="60" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  <rect x="450" y="60" width="35" height="30" fill="#BAE1FF" stroke="black" />
+  <rect x="485" y="60" width="35" height="30" fill="#FFFFBA" stroke="black" />
+  <rect x="520" y="60" width="35" height="30" fill="#FFB3BA" stroke="black" />
+  <rect x="555" y="60" width="35" height="30" fill="#BAFFC9" stroke="black" />
+  
+  <!-- Complexity -->
+  <text x="10" y="120" text-anchor="start" dominant-baseline="middle" font-size="14">Complexity: O(bN log(bN))</text>
+</svg>
