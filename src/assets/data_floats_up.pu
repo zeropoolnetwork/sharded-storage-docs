@@ -1,0 +1,25 @@
+@startuml
+
+rectangle L1 {
+    rectangle "Rollup Contract" as rollup_contract
+
+    rectangle "Data Availability" as da
+
+}
+
+file "Block Proof" as block_proof
+file "Block Data" as block_data
+
+rectangle "L2 Rollup" as l2_rollup
+
+
+
+l2_rollup -up-> block_proof
+block_proof -up-> rollup_contract
+
+l2_rollup -up-> block_data
+block_data -up-> da
+
+rollup_contract -right[hidden]- da
+
+@enduml
