@@ -69,3 +69,14 @@ println("Dynamic soundness for sharding for p=$(p), k=$(k), xt=$(xt), m=$(m): $(
 println("Dynamic soundness for replica for p=$(p), xt=$(xt), m=$(m): $(Int(floor(dyn_soundness(p, xt, 1, m))))")
 
 
+
+# Main execution
+p = BigFloat("0.5")
+k = 64
+# Percentage of network online to accept new transactions
+health_factor = 0.8
+xt = 8
+m = 4
+
+#println("Soundness for sharding p=$(p), k=$(k), xt=$(xt): $(Int(floor(soundness(p, xt, k))))")
+println("Dynamic soundness for sharding for p=$(p), k=$(k), health_factor=$(health_factor), xt=$(xt), m=$(m): $(Int(floor(dyn_soundness(p, Int(floor(xt * k * health_factor)), k, m))))")

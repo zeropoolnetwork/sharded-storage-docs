@@ -1,0 +1,25 @@
+@startuml
+skinparam monochrome true
+
+
+rectangle "Source Data \n       𝐃" as D
+rectangle "Shardⱼ" as S
+rectangle "Hashes\n   Hⱼ" as H
+rectangle "Commitment\n        C" as C
+rectangle "Challenge\n      χ" as CH
+rectangle "Opening for C at χ\n               {aᵢ}" as A
+rectangle "𝒞 = (C, χ, {aᵢ})" as FC
+
+
+D --> S : RS encoding
+S --> H 
+D --> C : FRI
+C --> CH
+H --> CH 
+CH --> A 
+C --> A
+C --> FC
+CH --> FC
+A --> FC
+
+@enduml

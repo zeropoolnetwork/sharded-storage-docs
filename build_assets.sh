@@ -42,7 +42,8 @@ for src_file in $src_pu_files; do
   base_name=$(basename "$src_file" .pu)
   dest_file="$dest_svg_dir${base_name}.svg"
 
-  plantuml_command="plantuml -tsvg -o '$dest_svg_dir' '$src_file'"
+  plantuml_command="CLASSPATH=$CLASSPATH:/usr/share/java/jlatexmath-minimal-1.0.3.jar:/usr/share/java/batik-all-1.7.jar:/usr/share/java/jlm_cyrillic.jar:/usr/share/java/jlm_greek.jar plantuml -tsvg -o '$dest_svg_dir' '$src_file'"
+ 
 
   check_and_execute "$src_file" "$dest_file" "$timeout" "$plantuml_command"
 done
